@@ -7,10 +7,9 @@
 #*  |_____||__||___._||____||__|__||___|   |___._||__|__||____|__|__||_____||__|      |_______|_______|  *
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
 #*************************************************************************************(c)2002-2016********
-#
-# Rewrite plan of blackPanther App Helper 2016
 
 import sys
+import gettext
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
@@ -25,25 +24,28 @@ import modules
 from modules import window1
 
 
+gettext.install("pydialog", "/usr/share/locale")
+
+
 class MainWindow(QDialog, window1.Ui_Dialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, options=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
 
 
 def call_parser():
-    usage = "usage: %prog [options] MESSAGE"
+    usage = _("usage: %prog [options] MESSAGE")
     parser = OptionParser(usage=usage)
-    parser.add_option("--title", help="Dialog title", dest="title", metavar="TITLE")
-    parser.add_option("--icon", help="Use icon as the application icon.", dest="icon", metavar="ICON")
-    parser.add_option("--yesnocancel", help="Question message box with yes/no/cancel buttons", dest="ync", action="store_true", default=False)
-    parser.add_option("--yesno", help="Question message box with yes/no buttons", dest="yn", action="store_true", default=False)
-    parser.add_option("--yes-label", help="The label of the yes-button", dest="yeslabel", metavar="LABEL")
-    parser.add_option("--no-label", help="The label of the no-button", dest="nolabel", metavar="LABEL")
-    parser.add_option("--cancel-label", help="The label of the cancel-button", dest="cancellabel", metavar="LABEL")
+    parser.add_option("--title", help=_("Dialog title"), dest="title", metavar=_("TITLE"))
+    parser.add_option("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("ICON"))
+    parser.add_option("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), dest="ync", action="store_true", default=False)
+    parser.add_option("--yesno", help=_("Question message box with yes/no buttons"), dest="yn", action="store_true", default=False)
+    parser.add_option("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("LABEL"))
+    parser.add_option("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("LABEL"))
+    parser.add_option("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("LABEL"))
     return parser.parse_args()
     
-
 
 if __name__ == '__main__':
 
@@ -51,7 +53,7 @@ if __name__ == '__main__':
     
     (options, args) = call_parser()
     
-    form = MainWindow()
+    form = MainWindow(options=options, args=args)
     form.show()
 
     sys.exit(app.exec_())
