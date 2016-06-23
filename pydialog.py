@@ -14,7 +14,7 @@ import gettext
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit
-from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication
+from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication, QDialogButtonBox
 
 from optparse import OptionParser
 
@@ -31,19 +31,38 @@ class MainWindow(QDialog, window1.Ui_Dialog):
     def __init__(self, parent=None, options=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        
+        if options.title:
+            self.setWindowTitle(options.title)
+        if options.icon:
+            self.setWindowIcon(options.icon)
+
+        yes_button = self.buttonBox.addButton(QDialogButtonBox.Yes)
+        no_button = self.buttonBox.addButton(QDialogButtonBox.No)
+        if options.ync:
+            self.buttonBox.addButton(QDialogButtonBox.Cancel)
+
+        if options.yeslabel:
+            yes_button.setText(options.yeslabel)
+        if options.nolabel:
+            yes_button.setText(options.nolabel)
+        if options.cancellabel:
+            cancel_button.setText(options.cancellabel)
 
 
 def call_parser():
     usage = _("usage: %prog [options] MESSAGE")
     parser = OptionParser(usage=usage)
+
     parser.add_option("--title", help=_("Dialog title"), dest="title", metavar=_("TITLE"))
     parser.add_option("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("ICON"))
+
     parser.add_option("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), dest="ync", action="store_true", default=False)
     parser.add_option("--yesno", help=_("Question message box with yes/no buttons"), dest="yn", action="store_true", default=False)
+
     parser.add_option("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("LABEL"))
     parser.add_option("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("LABEL"))
     parser.add_option("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("LABEL"))
+
     return parser.parse_args()
     
 
