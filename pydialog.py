@@ -49,6 +49,14 @@ class MainWindow(QDialog, window1.Ui_Dialog):
             cancel_button.setText(options.cancellabel)
             
         self.message.setText(args[0])
+        
+    def accept(self):
+        print ("yes")
+        exit()
+
+    def reject(self):
+        print ("no")
+        exit()
 
 
 def call_parser():
