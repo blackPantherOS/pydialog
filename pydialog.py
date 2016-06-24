@@ -11,7 +11,7 @@
 import sys
 import gettext
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QMetaObject
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication, QDialogButtonBox
@@ -43,7 +43,7 @@ class MainWindow(QDialog, window1.Ui_Dialog):
 
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
-        QtCore.QMetaObject.connectSlotsByName(self)
+        QMetaObject.connectSlotsByName(self)
 
         if options.yeslabel:
             yes_button.setText(options.yeslabel)
