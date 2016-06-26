@@ -39,10 +39,12 @@ class MainWindow(QDialog, window1.Ui_Dialog):
         yes_button = self.buttonBox.addButton(QDialogButtonBox.Yes)
         no_button = self.buttonBox.addButton(QDialogButtonBox.No)
         if options.ync:
-            self.buttonBox.addButton(QDialogButtonBox.Cancel)
+            cancel_button = self.buttonBox.addButton(QDialogButtonBox.Cancel)
+            cancel_button.clicked.connect(self.reject)
 
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
+        yes_button.clicked.connect(self.yes)
+        no_button.clicked.connect(self.no)
+
         QMetaObject.connectSlotsByName(self)
 
         if options.yeslabel:
@@ -54,13 +56,17 @@ class MainWindow(QDialog, window1.Ui_Dialog):
             
         self.message.setText(args[0])
         
-    def accept(self):
+    def yes(self):
         print ("yes")
-        exit()
+        sys.exit(0)
 
-    def reject(self):
+    def no(self):
         print ("no")
-        exit()
+        sys.exit(1)
+        
+    def reject(self):
+        print ("cancel")
+        sys.exit(2)
 
 
 def call_parser():
