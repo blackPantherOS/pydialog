@@ -41,6 +41,10 @@ class MainWindow(QDialog, window1.Ui_Dialog):
         if options.ync:
             self.buttonBox.addButton(QDialogButtonBox.Cancel)
 
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
         if options.yeslabel:
             yes_button.setText(options.yeslabel)
         if options.nolabel:
