@@ -10,6 +10,7 @@
 
 import sys
 import gettext
+import time
 
 from PyQt5.QtCore import Qt, QMetaObject
 from PyQt5.QtGui import *
@@ -31,30 +32,40 @@ class MainWindow(QDialog, window1.Ui_Dialog):
     def __init__(self, parent=None, options=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.button_positions = ["yes_button", "no_button", "cancel_button"]
+
+        self.active_buttons = dict((e, True) for e in self.button_positions)
+        if options.yn:
+            self.active_buttons["cancel_button"] = False
+
+        self.buttons = {}
+        self.detect_buttons()
+        
         if options.title:
             self.setWindowTitle(options.title)
         if options.icon:
             self.setWindowIcon(options.icon)
 
-        yes_button = self.buttonBox.addButton(QDialogButtonBox.Yes)
-        no_button = self.buttonBox.addButton(QDialogButtonBox.No)
-        if options.ync:
-            cancel_button = self.buttonBox.addButton(QDialogButtonBox.Cancel)
-            cancel_button.clicked.connect(self.reject)
+#        self.buttons["yes_button"] = self.buttonBox.addButton(QDialogButtonBox.Yes)
+#        self.buttons["no_button"] = self.buttonBox.addButton(QDialogButtonBox.No)
+#        if options.ync:
+#            self.buttons["cancel_button"] = self.buttonBox.addButton(QDialogButtonBox.Cancel)
+#            self.buttons["cancel_button"].clicked.connect(self.reject)
 
-        yes_button.clicked.connect(self.yes)
-        no_button.clicked.connect(self.no)
+        self.buttons["yes_button"].clicked.connect(self.yes)
+        self.buttons["no_button"].clicked.connect(self.no)
 
         QMetaObject.connectSlotsByName(self)
 
         if options.yeslabel:
-            yes_button.setText(options.yeslabel)
+            self.buttons["yes_button"].setText(options.yeslabel)
         if options.nolabel:
-            yes_button.setText(options.nolabel)
+            self.buttons["no_button"].setText(options.nolabel)
         if options.cancellabel:
-            cancel_button.setText(options.cancellabel)
+            self.buttons["cancel_button"].setText(options.cancellabel)
             
         self.message.setText(args[0])
+
         
     def yes(self):
         print ("yes")
@@ -67,6 +78,19 @@ class MainWindow(QDialog, window1.Ui_Dialog):
     def reject(self):
         print ("cancel")
         sys.exit(2)
+        
+    def detect_buttons(self):
+        buttons = self.buttonBox.buttons()
+        if self.active_buttons["cancel_button"]:
+            buttons.append(buttons.pop(0))
+        pos = 0
+        for button_name in self.button_positions:
+            if self.active_buttons[button_name]:
+                self.buttons[button_name] = buttons[pos]
+                pos += 1
+            else:
+                print("delete:", button_name)
+        
 
 
 def call_parser():
