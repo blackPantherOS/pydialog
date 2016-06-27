@@ -12,10 +12,10 @@ import sys
 import gettext
 import time
 
-from PyQt5.QtCore import Qt, QMetaObject
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit
-from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication, QDialogButtonBox
+from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication
 
 from optparse import OptionParser
 
@@ -28,69 +28,66 @@ from modules import window1
 gettext.install("pydialog", "/usr/share/locale")
 
 
-class MainWindow(QDialog, window1.Ui_Dialog):
+class ReturnClass():
+    def __init__(self, value):
+        self.value = value
+    def __call__(self):
+        print (self.value)
+        sys.exit(self.value)
+
+
+class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None, options=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        self.button_positions = ["yes_button", "no_button", "cancel_button"]
 
-        self.active_buttons = dict((e, True) for e in self.button_positions)
-        if options.yn:
-            self.active_buttons["cancel_button"] = False
-
-        self.buttons = {}
-        self.detect_buttons()
-        
         if options.title:
             self.setWindowTitle(options.title)
         if options.icon:
             self.setWindowIcon(options.icon)
 
-#        self.buttons["yes_button"] = self.buttonBox.addButton(QDialogButtonBox.Yes)
-#        self.buttons["no_button"] = self.buttonBox.addButton(QDialogButtonBox.No)
-#        if options.ync:
-#            self.buttons["cancel_button"] = self.buttonBox.addButton(QDialogButtonBox.Cancel)
-#            self.buttons["cancel_button"].clicked.connect(self.reject)
+        if len(args) == 0:
+            sys.exit(_("There is no argument!"))
+        self.groupBox.setTitle(args[0])
 
-        self.buttons["yes_button"].clicked.connect(self.yes)
-        self.buttons["no_button"].clicked.connect(self.no)
+        self.button_ids = ["ok_button", "yes_button", "no_button", "cancel_button"]
+        self.button_names = {"ok_button":_("Ok"), "yes_button":_("Yes"), "no_button":_("No"), "cancel_button":_("Cancel")}
+        self.active_buttons = dict((e, True) for e in self.button_names)
 
-        QMetaObject.connectSlotsByName(self)
+        if options.yn:
+            self.disable_buttons(["cancel_button", "ok_button"])
+        if options.ync:
+            self.disable_buttons(["ok_button"])
 
-        if options.yeslabel:
+        self.buttons = {}
+        
+        i = 0
+        for button_id in self.button_ids:
+            if self.active_buttons[button_id]:
+                self.buttons[button_id] = QPushButton(self.button_names[button_id])
+                self.gridLayout.addWidget(self.buttons[button_id])
+                if button_id != "cancel_button":
+                    objname = button_id[:-7]
+                    self.__dict__[objname] = ReturnClass(i)
+                    self.buttons[button_id].clicked.connect(self.__dict__[objname])
+                i += 1
+                
+        self.reject = ReturnClass(i)
+        if self.active_buttons["cancel_button"]:
+            self.buttons["cancel_button"].clicked.connect(self.reject)
+
+
+        if options.yeslabel and self.active_buttons["yes_button"]:
             self.buttons["yes_button"].setText(options.yeslabel)
-        if options.nolabel:
+        if options.nolabel and self.active_buttons["no_button"]:
             self.buttons["no_button"].setText(options.nolabel)
-        if options.cancellabel:
+        if options.cancellabel and self.active_buttons["cancel_button"]:
             self.buttons["cancel_button"].setText(options.cancellabel)
             
-        self.message.setText(args[0])
-
-        
-    def yes(self):
-        print ("yes")
-        sys.exit(0)
-
-    def no(self):
-        print ("no")
-        sys.exit(1)
-        
-    def reject(self):
-        print ("cancel")
-        sys.exit(2)
-        
-    def detect_buttons(self):
-        buttons = self.buttonBox.buttons()
-        if self.active_buttons["cancel_button"]:
-            buttons.append(buttons.pop(0))
-        pos = 0
-        for button_name in self.button_positions:
-            if self.active_buttons[button_name]:
-                self.buttons[button_name] = buttons[pos]
-                pos += 1
-            else:
-                print("delete:", button_name)
-        
+    def disable_buttons(self, button_list):
+        for button in button_list:
+            self.active_buttons[button] = False
+       
 
 
 def call_parser():
