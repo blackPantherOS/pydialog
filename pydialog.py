@@ -10,7 +10,6 @@
 
 import sys
 import gettext
-import time
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
@@ -32,7 +31,6 @@ class ReturnClass():
     def __init__(self, value):
         self.value = value
     def __call__(self):
-        time.sleep(0.05)  # because of the segfault
         sys.exit(self.value)
 
 
@@ -116,4 +114,4 @@ if __name__ == '__main__':
     form = MainWindow(options=options, args=args)
     form.show()
 
-    sys.exit(app.exec_())
+    app.exec_()
