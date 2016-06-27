@@ -28,9 +28,6 @@ class Ui_PyDialog(object):
         self.gridLayout.addWidget(self.groupBox, 1, 0, 1, 3)
         spacerItem = QtWidgets.QSpacerItem(20, 2, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.gridLayout.addItem(spacerItem, 0, 1, 1, 1)
-        self.toolButton = QtWidgets.QToolButton(PyDialog)
-        self.toolButton.setObjectName("toolButton")
-        self.gridLayout.addWidget(self.toolButton, 2, 2, 1, 1)
         spacerItem1 = QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.gridLayout.addItem(spacerItem1, 2, 0, 1, 1)
 
@@ -40,5 +37,4 @@ class Ui_PyDialog(object):
     def retranslateUi(self, PyDialog):
         _translate = QtCore.QCoreApplication.translate
         PyDialog.setWindowTitle(_translate("PyDialog", "Dialog"))
-        self.toolButton.setText(_translate("PyDialog", "..."))
 
