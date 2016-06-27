@@ -32,7 +32,7 @@ class ReturnClass():
     def __init__(self, value):
         self.value = value
     def __call__(self):
-        print (self.value)
+        time.sleep(0.05)  # because of the segfault
         sys.exit(self.value)
 
 
