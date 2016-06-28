@@ -38,42 +38,42 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None, options=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.nullarg = False
 
         if options.title:
             self.setWindowTitle(options.title)
         if options.icon:
             self.setWindowIcon(options.icon)
 
-        if len(args) == 0:
-            sys.exit(_("There is no argument!"))
-        self.groupBox.setTitle(args[0])
 
-        self.button_ids = ["ok_button", "yes_button", "no_button", "cancel_button"]
-        self.button_names = {"ok_button":_("Ok"), "yes_button":_("Yes"), "no_button":_("No"), "cancel_button":_("Cancel")}
+        self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "cancel_button"]
+        self.button_names = {
+            "details_button":_("Details"), 
+            "ok_button":_("Ok"), 
+            "yes_button":_("Yes"), 
+            "no_button":_("No"), 
+            "cancel_button":_("Cancel")
+        }
         self.active_buttons = dict((e, True) for e in self.button_names)
 
         if options.yn:
-            self.disable_buttons(["cancel_button", "ok_button"])
-        if options.ync:
-            self.disable_buttons(["ok_button"])
+            self.disable_buttons(["details_button", "cancel_button", "ok_button"])
+        elif options.ync:
+            self.disable_buttons(["details_button", "ok_button"])
+        elif options.sorry:
+            self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
+            self.nullarg = True
+        elif options.dsorry:
+            self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
+            self.nullarg = True
 
-        self.buttons = {}
-        
-        i = 0
-        for button_id in self.button_ids:
-            if self.active_buttons[button_id]:
-                self.buttons[button_id] = QPushButton(self.button_names[button_id])
-                self.gridLayout.addWidget(self.buttons[button_id])
-                if button_id != "cancel_button":
-                    objname = button_id[:-7]
-                    self.__dict__[objname] = ReturnClass(i)
-                    self.buttons[button_id].clicked.connect(self.__dict__[objname])
-                i += 1
-                
-        self.reject = ReturnClass(i)
-        if self.active_buttons["cancel_button"]:
-            self.buttons["cancel_button"].clicked.connect(self.reject)
+        if not self.nullarg:
+            if len(args) == 0:
+                sys.exit(_("There is no argument!"))
+            self.groupBox.setTitle(args[0])
 
+        self.create_buttons()
 
         if options.yeslabel and self.active_buttons["yes_button"]:
             self.buttons["yes_button"].setText(options.yeslabel)
@@ -81,7 +81,28 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.buttons["no_button"].setText(options.nolabel)
         if options.cancellabel and self.active_buttons["cancel_button"]:
             self.buttons["cancel_button"].setText(options.cancellabel)
-            
+
+
+
+    def create_buttons(self):
+        self.buttons = {}
+        
+        noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
+        i = 0
+        for button_id in self.button_ids:
+            if self.active_buttons[button_id]:
+                self.buttons[button_id] = QPushButton(self.button_names[button_id])
+                self.gridLayout.addWidget(self.buttons[button_id])
+                if i < noab-1:
+                    objname = button_id[:-7]
+                    self.__dict__[objname] = ReturnClass(i)
+                    self.buttons[button_id].clicked.connect(self.__dict__[objname])
+                else:
+                    self.reject = ReturnClass(i)
+                    self.buttons[button_id].clicked.connect(self.reject)
+                i += 1
+
+
     def disable_buttons(self, button_list):
         for button in button_list:
             self.active_buttons[button] = False
@@ -89,18 +110,22 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
 
 def call_parser():
-    usage = _("usage: %prog [options] MESSAGE")
+    usage = _("usage: %prog [options] [arg]")
     parser = OptionParser(usage=usage)
 
-    parser.add_option("--title", help=_("Dialog title"), dest="title", metavar=_("TITLE"))
-    parser.add_option("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("ICON"))
+    parser.add_option("--title", help=_("Dialog title"), dest="title", metavar=_("<text>"))
+    parser.add_option("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
 
     parser.add_option("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), dest="ync", action="store_true", default=False)
     parser.add_option("--yesno", help=_("Question message box with yes/no buttons"), dest="yn", action="store_true", default=False)
 
-    parser.add_option("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("LABEL"))
-    parser.add_option("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("LABEL"))
-    parser.add_option("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("LABEL"))
+    parser.add_option("--sorry", help=_("Sorry message box"), dest="sorry", metavar=_("<text>"))
+    parser.add_option("--detailedsorry", help=_("Sorry message box with expendable Details field"), dest="dsorry", nargs=2, metavar=_("<text> <details>"))
+#    TODO: progressbar
+  
+    parser.add_option("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
+    parser.add_option("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
+    parser.add_option("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
 
     return parser.parse_args()
     
