@@ -39,7 +39,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         
-        self.nullarg = False
+        self.null_extra_arg = False
 
         if arguments.title:
             self.setWindowTitle(arguments.title)
@@ -63,17 +63,17 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.disable_buttons(["details_button", "ok_button"])
         elif arguments.sorry:
             self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
-            self.nullarg = True
+            self.null_extra_arg = True
             self.groupBox.setTitle(arguments.sorry)
         elif arguments.dsorry:
             self.disable_buttons(["cancel_button", "yes_button", "no_button"])
-            self.nullarg = True
+            self.null_extra_arg = True
             self.groupBox.setTitle(arguments.dsorry[0])
 
-        if not self.nullarg:
-            if len(args) == 0:
-                sys.exit(_("There is no argument!"))
-            self.groupBox.setTitle(args[0])
+        if not self.null_extra_arg:
+            if not arguments.extra_arguments:
+                sys.exit(_("There is no extra argument!"))
+            self.groupBox.setTitle(arguments.extra_arguments[0])
 
         self.create_buttons()
 
@@ -160,6 +160,8 @@ def call_parser():
 #    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"))
     parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
+
+    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='+')
 
     return parser.parse_args()
     
