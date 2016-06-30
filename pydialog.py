@@ -45,6 +45,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.setWindowTitle(arguments.title)
         if arguments.icon:
             self.setWindowIcon(arguments.icon)
+        if not arguments.progressbar:
+            self.progressBar.hide()
 
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "cancel_button"]
@@ -57,18 +59,18 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         }
         self.active_buttons = dict((e, True) for e in self.button_names)
 
-        if arguments.yn:
+        if arguments.yesno:
             self.disable_buttons(["details_button", "cancel_button", "ok_button"])
-        elif arguments.ync:
+        elif arguments.yesnocancel:
             self.disable_buttons(["details_button", "ok_button"])
         elif arguments.sorry:
             self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
             self.null_extra_arg = True
             self.groupBox.setTitle(arguments.sorry)
-        elif arguments.dsorry:
+        elif arguments.detailedsorry:
             self.disable_buttons(["cancel_button", "yes_button", "no_button"])
             self.null_extra_arg = True
-            self.groupBox.setTitle(arguments.dsorry[0])
+            self.groupBox.setTitle(arguments.detailedsorry[0])
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
@@ -94,7 +96,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         for button_id in self.button_ids:
             if self.active_buttons[button_id]:
                 self.buttons[button_id] = QPushButton(self.button_names[button_id])
-                self.gridLayout.addWidget(self.buttons[button_id])
+                self.horizontalLayout.addWidget(self.buttons[button_id])
                 if i < noab-1:
                     objname = button_id[:-7]
                     self.__dict__[objname] = ReturnClass(i)
@@ -116,19 +118,19 @@ def call_parser():
     parser = ArgumentParser(usage=usage)
 
     parser.add_argument("--title", help=_("Dialog title"), dest="title", metavar=_("<text>"))
-    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
+    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>")) # TODO: test it
 
-    parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), dest="ync", action="store_true", default=False)
-    parser.add_argument("--yesno", help=_("Question message box with yes/no buttons"), dest="yn", action="store_true", default=False)
+    parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), action="store_true", default=False)
+    parser.add_argument("--yesno", help=_("Question message box with yes/no buttons"), action="store_true", default=False)
 
-    parser.add_argument("--sorry", help=_("Sorry message box"), dest="sorry", metavar=_("<text>"))
-    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), dest="dsorry", nargs=2, metavar=_("<text> <details>"))
-    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
+    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>"))
 
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
 
+    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
     parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
     parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
