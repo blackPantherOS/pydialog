@@ -67,19 +67,32 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 self.label.setText(arguments.yesno)
             else:
                 self.label.setText(arguments.warningyesno)
+
         elif arguments.yesnocancel or arguments.warningyesnocancel:
             self.enable_buttons(["yes_button", "no_button", "cancel_button"])
             if arguments.yesnocancel:
                 self.label.setText(arguments.yesnocancel)
             else:
                 self.label.setText(arguments.warningyesnocancel)
-        elif arguments.sorry:
+
+        elif arguments.sorry or arguments.error or arguments.msgbox:
             self.enable_buttons(["ok_button"])
-            self.label.setText(arguments.sorry)
-        elif arguments.detailedsorry:
+            if arguments.sorry:
+                self.label.setText(arguments.sorry)
+            elif arguments.error:
+                self.label.setText(arguments.error)
+            else:
+                self.label.setText(arguments.msgbox)
+
+        elif arguments.detailedsorry or arguments.detailederror:
             self.enable_buttons(["details_button", "ok_button"])
-            self.label.setText(arguments.detailedsorry[0])
-            self.details = arguments.detailedsorry[1]
+            if arguments.detailedsorry:
+                self.label.setText(arguments.detailedsorry[0])
+                self.details = arguments.detailedsorry[1]
+            else:
+                self.label.setText(arguments.detailederror[0])
+                self.details = arguments.detailederror[1]
+
         elif arguments.warningcontinuecancel:
             self.enable_buttons(["continue_button", "cancel_button"])
             self.label.setText(arguments.warningcontinuecancel)
@@ -149,10 +162,13 @@ def call_parser():
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
     parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
+    parser.add_argument("--error", metavar=_("<text>"), help=_("'Error' message box"))
+    parser.add_argument("--msgbox", metavar=_("<text>"), help=_("Message Box dialog"))
 
     # TODO: the return value is not compatible with the kdialog
     parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>")) 
     parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
+    parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
 
     # TODO: Untested options below
     
@@ -160,34 +176,33 @@ def call_parser():
 
     # TODO: Unfinished options below
 
+
+
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
-    parser.add_argument("--error", metavar=_("<text>"), help=_("'Error' message box"))
-    parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
-    parser.add_argument("--msgbox", metavar=_("<text>"), help=_("Message Box dialog"))
-    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
-    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
-    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
-    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
-    parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
+#    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
+#    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
+#    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
+#    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
+#    parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
 #    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"))
 #    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"))
 #    parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"))
-    parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"))
+#    parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"))
 #    parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"))
 #    parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"))
 #    parser.add_argument("--getexistingdirectory", metavar=_("[startDir]"), help=_("File dialog to select an existing directory"))
 #    parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"))
 #    parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"))
 #    parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"))
-    parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
-    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"))
-    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
-    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"))
-    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"))
-    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"))
+#    parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
+#    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"))
+#    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
+#    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"))
+#    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"))
+#    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"))
 #    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"))
-    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
-    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
+#    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
+#    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
 
     parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
 
