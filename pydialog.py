@@ -129,12 +129,12 @@ def call_parser():
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
+    parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
 
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
     parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
     parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
-    parser.add_argument("--continue-label", metavar=_("<text>"), help=_("Use text as Continue button label"))
     parser.add_argument("--error", metavar=_("<text>"), help=_("'Error' message box"))
     parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
     parser.add_argument("--msgbox", metavar=_("<text>"), help=_("Message Box dialog"))
@@ -170,10 +170,9 @@ def call_parser():
 
 if __name__ == '__main__':
 
-    app = QApplication(sys.argv)
-    
     arguments = call_parser()
-    
+    app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove from the sys.argv! Call the parse_args before it if you want to use everything.
+
     form = MainWindow(arguments=arguments)
     form.show()
 
