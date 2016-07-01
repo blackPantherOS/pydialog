@@ -58,25 +58,28 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             "cancel_button":_("Cancel")
         }
         self.active_buttons = dict((e, False) for e in self.button_names)
+        self.null_extra_arg = True
 
-        if arguments.yesno:
+        if arguments.yesno or arguments.warningyesno:
             self.enable_buttons(["yes_button", "no_button"])
+            if arguments.yesno:
+                self.label.setText(arguments.yesno)
+            else:
+                self.label.setText(arguments.warningyesno)
         elif arguments.yesnocancel:
             self.enable_buttons(["yes_button", "no_button", "cancel_button"])
+            self.label.setText(arguments.yesnocancel)
         elif arguments.sorry:
             self.enable_buttons(["ok_button"])
-            self.null_extra_arg = True
             self.label.setText(arguments.sorry)
         elif arguments.detailedsorry:
             self.enable_buttons(["details_button", "ok_button"])
-            self.null_extra_arg = True
             self.label.setText(arguments.detailedsorry[0])
             self.details = arguments.detailedsorry[1]
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
                 sys.exit(_("There is no extra argument!"))
-            self.label.setText(arguments.extra_arguments[0])
 
         self.create_buttons()
 
@@ -127,8 +130,9 @@ def call_parser():
     parser = ArgumentParser()
 
     parser.add_argument("--title", help=_("Dialog title"), metavar=_("<text>"))
-    parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), action="store_true", default=False)
-    parser.add_argument("--yesno", help=_("Question message box with yes/no buttons"), action="store_true", default=False)
+    parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"))
+    parser.add_argument("--yesno", help=_("Question message box with yes/no buttons"))
+
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
