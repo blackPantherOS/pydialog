@@ -114,10 +114,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
 
 def call_parser():
-    usage = _("usage: %prog [options] [arg]")
-    parser = ArgumentParser(usage=usage)
+#    usage = _("usage: %prog [options] [arg]")
+    parser = ArgumentParser()#usage=usage)
 
-    parser.add_argument("--title", help=_("Dialog title"), dest="title", metavar=_("<text>"))
+    parser.add_argument("--title", help=_("Dialog title"), metavar=_("<text>"))
     parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>")) # TODO: test it
 
     parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), action="store_true", default=False)
