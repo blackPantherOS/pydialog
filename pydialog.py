@@ -66,9 +66,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 self.label.setText(arguments.yesno)
             else:
                 self.label.setText(arguments.warningyesno)
-        elif arguments.yesnocancel:
+        elif arguments.yesnocancel or arguments.warningyesnocancel:
             self.enable_buttons(["yes_button", "no_button", "cancel_button"])
-            self.label.setText(arguments.yesnocancel)
+            if arguments.yesnocancel:
+                self.label.setText(arguments.yesnocancel)
+            else:
+                self.label.setText(arguments.warningyesnocancel)
         elif arguments.sorry:
             self.enable_buttons(["ok_button"])
             self.label.setText(arguments.sorry)
@@ -139,6 +142,8 @@ def call_parser():
 
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
+    parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
+    parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
 
     # TODO: the return value is not compatible with the kdialog
     parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>")) 
@@ -151,9 +156,7 @@ def call_parser():
     # TODO: Unfinished options below
 
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
-    parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
     parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
-    parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
     parser.add_argument("--error", metavar=_("<text>"), help=_("'Error' message box"))
     parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
     parser.add_argument("--msgbox", metavar=_("<text>"), help=_("Message Box dialog"))
