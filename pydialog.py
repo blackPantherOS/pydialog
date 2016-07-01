@@ -57,18 +57,18 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             "no_button":_("No"), 
             "cancel_button":_("Cancel")
         }
-        self.active_buttons = dict((e, True) for e in self.button_names)
+        self.active_buttons = dict((e, False) for e in self.button_names)
 
         if arguments.yesno:
-            self.disable_buttons(["details_button", "cancel_button", "ok_button"])
+            self.enable_buttons(["yes_button", "no_button"])
         elif arguments.yesnocancel:
-            self.disable_buttons(["details_button", "ok_button"])
+            self.enable_buttons(["yes_button", "no_button", "cancel_button"])
         elif arguments.sorry:
-            self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
+            self.enable_buttons(["ok_button"])
             self.null_extra_arg = True
             self.label.setText(arguments.sorry)
         elif arguments.detailedsorry:
-            self.disable_buttons(["cancel_button", "yes_button", "no_button"])
+            self.enable_buttons(["details_button", "ok_button"])
             self.null_extra_arg = True
             self.label.setText(arguments.detailedsorry[0])
             self.details = arguments.detailedsorry[1]
@@ -114,9 +114,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                     i += 1
 
 
-    def disable_buttons (self, button_list): # TODO: Maybe better to enable
+    def enable_buttons (self, button_list): # TODO: Maybe better to enable
         for button in button_list:
-            self.active_buttons[button] = False
+            self.active_buttons[button] = True
             
     def details_button_clicked (self):
         self.label.setText(self.label.text() + '\n\n' + self.details)
@@ -132,8 +132,12 @@ def call_parser():
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
+
+    # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
-    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>"))
+
+    # TODO: the return value is not compatible with the kdialog
+    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>")) 
 
     # TODO: Untested options below
     
