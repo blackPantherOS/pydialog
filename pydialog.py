@@ -66,16 +66,16 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         elif arguments.sorry:
             self.disable_buttons(["details_button", "cancel_button", "yes_button", "no_button"])
             self.null_extra_arg = True
-            self.groupBox.setTitle(arguments.sorry)
+            self.label.setText(arguments.sorry)
         elif arguments.detailedsorry:
             self.disable_buttons(["cancel_button", "yes_button", "no_button"])
             self.null_extra_arg = True
-            self.groupBox.setTitle(arguments.detailedsorry[0])
+            self.label.setText(arguments.detailedsorry[0])
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
                 sys.exit(_("There is no extra argument!"))
-            self.groupBox.setTitle(arguments.extra_arguments[0])
+            self.label.setText(arguments.extra_arguments[0])
 
         self.create_buttons()
 
