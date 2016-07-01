@@ -71,6 +71,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.disable_buttons(["cancel_button", "yes_button", "no_button"])
             self.null_extra_arg = True
             self.label.setText(arguments.detailedsorry[0])
+            self.details = arguments.detailedsorry[1]
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
@@ -85,6 +86,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.buttons["no_button"].setText(arguments.nolabel)
         if arguments.cancellabel and self.active_buttons["cancel_button"]:
             self.buttons["cancel_button"].setText(arguments.cancellabel)
+        if arguments.continuelabel and self.active_buttons["continue_button"]:
+            self.buttons["continue_button"].setText(arguments.continuelabel)
 
 
 
@@ -97,39 +100,47 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if self.active_buttons[button_id]:
                 self.buttons[button_id] = QPushButton(self.button_names[button_id])
                 self.horizontalLayout.addWidget(self.buttons[button_id])
-                if i < noab-1:
-                    objname = button_id[:-7]
-                    self.__dict__[objname] = ReturnClass(i)
-                    self.buttons[button_id].clicked.connect(self.__dict__[objname])
+                if button_id == "details_button":
+                    noab -= 1
+                    self.buttons["details_button"].clicked.connect(self.details_button_clicked)
                 else:
-                    self.reject = ReturnClass(i)
-                    self.buttons[button_id].clicked.connect(self.reject)
-                i += 1
+                    if i < noab-1:
+                        objname = button_id[:-7]
+                        self.__dict__[objname] = ReturnClass(i)
+                        self.buttons[button_id].clicked.connect(self.__dict__[objname])
+                    else:
+                       self.reject = ReturnClass(i)
+                       self.buttons[button_id].clicked.connect(self.reject)
+                    i += 1
 
 
-    def disable_buttons(self, button_list):
+    def disable_buttons (self, button_list): # TODO: Maybe better to enable
         for button in button_list:
             self.active_buttons[button] = False
-       
+            
+    def details_button_clicked (self):
+        self.label.setText(self.label.text() + '\n\n' + self.details)
+        self.buttons["details_button"].setDisabled(True)
 
 
 def call_parser():
-#    usage = _("usage: %prog [options] [arg]")
-    parser = ArgumentParser()#usage=usage)
+    parser = ArgumentParser()
 
     parser.add_argument("--title", help=_("Dialog title"), metavar=_("<text>"))
-    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>")) # TODO: test it
-
     parser.add_argument("--yesnocancel", help=_("Question message box with yes/no/cancel buttons"), action="store_true", default=False)
     parser.add_argument("--yesno", help=_("Question message box with yes/no buttons"), action="store_true", default=False)
-
-    parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
-    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>"))
-
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
+    parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
+    parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>"))
+
+    # TODO: Untested options below
+    
+    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
     parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
+
+    # TODO: Unfinished options below
 
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
@@ -163,7 +174,7 @@ def call_parser():
     parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
 
-    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='+')
+    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
 
     return parser.parse_args()
     
