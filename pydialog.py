@@ -49,12 +49,13 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.progressBar.hide()
 
 
-        self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "cancel_button"]
+        self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
             "details_button":_("Details"), 
             "ok_button":_("Ok"), 
             "yes_button":_("Yes"), 
             "no_button":_("No"), 
+            "continue_button":_("Continue"),
             "cancel_button":_("Cancel")
         }
         self.active_buttons = dict((e, False) for e in self.button_names)
@@ -79,6 +80,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.enable_buttons(["details_button", "ok_button"])
             self.label.setText(arguments.detailedsorry[0])
             self.details = arguments.detailedsorry[1]
+        elif arguments.warningcontinuecancel:
+            self.enable_buttons(["continue_button", "cancel_button"])
+            self.label.setText(arguments.warningcontinuecancel)
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
@@ -139,6 +143,7 @@ def call_parser():
     parser.add_argument("--yes-label", help=_("The label of the yes-button"), dest="yeslabel", metavar=_("<text>"))
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
+    parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
 
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
@@ -147,16 +152,15 @@ def call_parser():
 
     # TODO: the return value is not compatible with the kdialog
     parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>")) 
+    parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
 
     # TODO: Untested options below
     
     parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
-    parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
 
     # TODO: Unfinished options below
 
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
-    parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
     parser.add_argument("--error", metavar=_("<text>"), help=_("'Error' message box"))
     parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
     parser.add_argument("--msgbox", metavar=_("<text>"), help=_("Message Box dialog"))
