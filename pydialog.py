@@ -96,6 +96,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         elif arguments.warningcontinuecancel:
             self.enable_buttons(["continue_button", "cancel_button"])
             self.label.setText(arguments.warningcontinuecancel)
+        
+        elif arguments.progressbar:
+            self.label.setText(arguments.progressbar[0])
+            
 
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
@@ -137,7 +141,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                     i += 1
 
 
-    def enable_buttons (self, button_list): # TODO: Maybe better to enable
+    def enable_buttons (self, button_list):
         for button in button_list:
             self.active_buttons[button] = True
             
@@ -176,9 +180,7 @@ def call_parser():
 
     # TODO: Unfinished options below
 
-
-
-    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs=2, metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs="+", metavar=_("<text> [totalsteps]"))
 #    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
 #    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
 #    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
