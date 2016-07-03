@@ -12,6 +12,7 @@ import sys
 import gettext
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication
@@ -117,7 +118,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
 
-
     def create_buttons(self):
         self.buttons = {}
         
@@ -148,6 +148,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def details_button_clicked (self):
         self.label.setText(self.label.text() + '\n\n' + self.details)
         self.buttons["details_button"].setDisabled(True)
+        
+# This can stop the close event
+#    def closeEvent(self, event):
+#        event.ignore()
 
 
 def call_parser():
