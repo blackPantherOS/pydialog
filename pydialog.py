@@ -41,7 +41,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
         
         self.null_extra_arg = False
-        self.forked = False
 
         if arguments.title:
             self.setWindowTitle(arguments.title)
@@ -119,10 +118,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
-        self.loader_button = QPushButton("1")
-        self.horizontalLayout.addWidget(self.loader_button)
-        self.loader_button.clicked.connect(self.fork)
-
 
     def create_buttons(self):
         self.buttons = {}
@@ -145,16 +140,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                        self.reject = ReturnClass(i)
                        self.buttons[button_id].clicked.connect(self.reject)
                     i += 1
-
-
-    def fork(self):
-        if not self.forked:
-            self.forked = True
-            print("FORK")
-            if os.fork():
-                os._exit(0)
-            os.close(1)
-
 
 
     def enable_buttons (self, button_list):
