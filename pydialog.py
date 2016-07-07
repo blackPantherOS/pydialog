@@ -8,7 +8,7 @@
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
 #*************************************************************************************(c)2002-2016********
 
-import sys
+import sys, os, time
 import gettext
 
 from PyQt5.QtCore import Qt
@@ -41,11 +41,13 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
         
         self.null_extra_arg = False
+        self.forked = False
 
         if arguments.title:
             self.setWindowTitle(arguments.title)
         if arguments.icon:
-            self.setWindowIcon(arguments.icon)
+            icon = QIcon(arguments.icon)
+            self.setWindowIcon(icon)
         if not arguments.progressbar:
             self.progressBar.hide()
 
@@ -117,6 +119,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
+        self.loader_button = QPushButton("1")
+        self.horizontalLayout.addWidget(self.loader_button)
+        self.loader_button.clicked.connect(self.fork)
+
 
     def create_buttons(self):
         self.buttons = {}
@@ -141,6 +147,16 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                     i += 1
 
 
+    def fork(self):
+        if not self.forked:
+            self.forked = True
+            print("FORK")
+            if os.fork():
+                os._exit(0)
+            os.close(1)
+
+
+
     def enable_buttons (self, button_list):
         for button in button_list:
             self.active_buttons[button] = True
@@ -148,8 +164,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def details_button_clicked (self):
         self.label.setText(self.label.text() + '\n\n' + self.details)
         self.buttons["details_button"].setDisabled(True)
+
         
-# This can stop the close event
+#   This can stop the close event
 #    def closeEvent(self, event):
 #        event.ignore()
 
