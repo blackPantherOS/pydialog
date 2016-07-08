@@ -11,7 +11,7 @@
 import sys, os, time
 import gettext
 
-from PyQt5.QtCore import Qt, QTimer, QObject, QMetaObject, QThread
+from PyQt5.QtCore import Qt
 from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
@@ -27,12 +27,6 @@ from modules import window1
 
 gettext.install("pydialog", "/usr/share/locale")
 
-#class Thread(QThread):
-#    def __init__(self):
-#        QThread.__init__(self)
-#
-#    def run(self):
-#        thread_func()
 
 class ReturnClass():
     def __init__(self, value):
@@ -45,9 +39,6 @@ class MainWindow(QDialog, QThread, window1.Ui_PyDialog):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.ctimer = QTimer()
-        self.stimer = QTimer()
-
         self.null_extra_arg = False
 
         if arguments.title:
@@ -57,11 +48,7 @@ class MainWindow(QDialog, QThread, window1.Ui_PyDialog):
             self.setWindowIcon(icon)
         if not arguments.progressbar:
             self.progressBar.hide()
-        else:
-            self.constant()
-            self.ctimer.timeout.connect(self.constantUpdate)
-            QMetaObject.connectSlotsByName(self)
-
+     
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
