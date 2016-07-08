@@ -15,7 +15,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
-from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication
+from PyQt5.QtWidgets import QWidget, QDialog, QApplication
+
 
 from argparse import ArgumentParser
 
@@ -23,7 +24,6 @@ from argparse import ArgumentParser
 import modules
 
 from modules import window1
-
 
 gettext.install("pydialog", "/usr/share/locale")
 
@@ -34,12 +34,11 @@ class ReturnClass():
     def __call__(self):
         sys.exit(self.value)
 
-
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None, arguments=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        
+
         self.null_extra_arg = False
 
         if arguments.title:
@@ -49,7 +48,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.setWindowIcon(icon)
         if not arguments.forkedprogressbar:
             self.progressBar.hide()
-
+     
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -118,6 +117,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
+    def constant(self):
+        self.ctimer.start(1000)
+    
+    def constantUpdate(self):
+        val = self.progressBar.value() + 15
+        if val > 100:
+                sys.exit()
+                val = 0
+        self.progressBar.setValue(val)
 
     def create_buttons(self):
         self.buttons = {}
@@ -162,6 +170,7 @@ def call_parser():
     parser.add_argument("--no-label", help=_("The label of the no-button"), dest="nolabel", metavar=_("<text>"))
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
     parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
+    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
 
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
@@ -177,7 +186,6 @@ def call_parser():
 
     # TODO: Untested options below
     
-    parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
 
     # TODO: Unfinished options below
 
@@ -225,7 +233,7 @@ if __name__ == '__main__':
 
         app.exec_()
     else:
-        progname = "./pydialog.py"
-        dbusname = " --dbusname valami"
+        progname = "pydialog"
+        dbusname = " --dbusname valami" # TODO: dbus
         cmd = progname + " ".join(sys.argv[1:]).replace("--progressbar", " --forkedprogressbar") + dbusname + " &"
         os.system(cmd)
