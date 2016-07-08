@@ -117,15 +117,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
-    def constant(self):
-        self.ctimer.start(1000)
-    
-    def constantUpdate(self):
-        val = self.progressBar.value() + 15
-        if val > 100:
-                sys.exit()
-                val = 0
-        self.progressBar.setValue(val)
 
     def create_buttons(self):
         self.buttons = {}
