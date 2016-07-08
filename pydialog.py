@@ -47,7 +47,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.icon:
             icon = QIcon(arguments.icon)
             self.setWindowIcon(icon)
-        if not arguments.progressbar:
+        if not arguments.forkedprogressbar:
             self.progressBar.hide()
 
 
@@ -150,11 +150,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.label.setText(self.label.text() + '\n\n' + self.details)
         self.buttons["details_button"].setDisabled(True)
 
-        
-#   This can stop the close event
-#    def closeEvent(self, event):
-#        event.ignore()
-
 
 def call_parser():
     parser = ArgumentParser()
@@ -186,7 +181,9 @@ def call_parser():
 
     # TODO: Unfinished options below
 
-    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), dest="progressbar", nargs="+", metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), nargs="+", metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--forkedprogressbar", help=_(""), nargs="+", metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--dbusname", help=_(""), nargs="+", metavar=_("<text>"))
 #    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
 #    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
 #    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
@@ -218,11 +215,17 @@ def call_parser():
     
 
 if __name__ == '__main__':
-
     arguments = call_parser()
-    app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove from the sys.argv! Call the parse_args before it if you want to use everything.
+    
+    if not arguments.progressbar:
+        app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove from the sys.argv! Call the parse_args before it if you want to use everything.
 
-    form = MainWindow(arguments=arguments)
-    form.show()
+        form = MainWindow(arguments=arguments)
+        form.show()
 
-    app.exec_()
+        app.exec_()
+    else:
+        progname = "./pydialog.py"
+        dbusname = " --dbusname valami"
+        cmd = progname + " ".join(sys.argv[1:]).replace("--progressbar", " --forkedprogressbar") + dbusname + " &"
+        os.system(cmd)
