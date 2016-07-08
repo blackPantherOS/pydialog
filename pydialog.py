@@ -11,11 +11,12 @@
 import sys, os, time
 import gettext
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer, QObject, QMetaObject, QThread
 from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
-from PyQt5.QtWidgets import QTextEdit, QWidget, QDialog, QApplication
+from PyQt5.QtWidgets import QWidget, QDialog, QApplication
+
 
 from argparse import ArgumentParser
 
@@ -24,9 +25,14 @@ import modules
 
 from modules import window1
 
-
 gettext.install("pydialog", "/usr/share/locale")
 
+#class Thread(QThread):
+#    def __init__(self):
+#        QThread.__init__(self)
+#
+#    def run(self):
+#        thread_func()
 
 class ReturnClass():
     def __init__(self, value):
@@ -34,12 +40,14 @@ class ReturnClass():
     def __call__(self):
         sys.exit(self.value)
 
-
-class MainWindow(QDialog, window1.Ui_PyDialog):
+class MainWindow(QDialog, QThread, window1.Ui_PyDialog):
     def __init__(self, parent=None, arguments=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        
+
+        self.ctimer = QTimer()
+        self.stimer = QTimer()
+
         self.null_extra_arg = False
 
         if arguments.title:
@@ -49,6 +57,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.setWindowIcon(icon)
         if not arguments.progressbar:
             self.progressBar.hide()
+        else:
+            self.constant()
+            self.ctimer.timeout.connect(self.constantUpdate)
+            QMetaObject.connectSlotsByName(self)
 
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
@@ -118,6 +130,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
+    def constant(self):
+        self.ctimer.start(1000)
+    
+    def constantUpdate(self):
+        val = self.progressBar.value() + 15
+        if val > 100:
+                sys.exit()
+                val = 0
+        self.progressBar.setValue(val)
 
     def create_buttons(self):
         self.buttons = {}
