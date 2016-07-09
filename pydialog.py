@@ -11,12 +11,12 @@
 import sys, os, time
 import gettext
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QWidget, QDialog, QApplication
-
+from PyQt5.QtDBus import (QDBusAbstractAdaptor, QDBusAbstractInterface, QDBusConnection, QDBusMessage)
 
 from argparse import ArgumentParser
 
@@ -25,7 +25,39 @@ import modules
 
 from modules import window1
 
+
 gettext.install("pydialog", "/usr/share/locale")
+
+
+class DBusAdaptor(QDBusAbstractAdaptor):
+
+    Q_CLASSINFO("D-Bus Interface", 'org.kde.kdialog.ProgressDialog')
+
+    Q_CLASSINFO("D-Bus Introspection", '''<interface name="org.kde.kdialog.ProgressDialog">
+    <property name="maximum" type="i" access="readwrite"/>
+    <property name="value" type="i" access="readwrite"/>
+    <property name="autoClose" type="b" access="readwrite"/>
+    <method name="setLabelText">
+      <arg type="s" name="label" direction="in"/>
+    </method>
+    <method name="showCancelButton">
+      <arg name="value" type="b" direction="in"/>
+    </method>
+    <method name="wasCancelled">
+      <arg type="b" direction="out"/>
+    </method>
+    <method name="close"/>
+    </interface>''')
+
+    def __init__(self, parent):
+        super(DBusAdaptor, self).__init__(parent)
+
+        self.setAutoRelaySignals(True)
+        
+    @pyqtSlot()
+    def close(self):
+        sys.exit(0)
+
 
 
 class ReturnClass():
@@ -33,6 +65,7 @@ class ReturnClass():
         self.value = value
     def __call__(self):
         sys.exit(self.value)
+
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None, arguments=None):
@@ -48,7 +81,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.setWindowIcon(icon)
         if not arguments.forkedprogressbar:
             self.progressBar.hide()
-     
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -149,6 +181,53 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.label.setText(self.label.text() + '\n\n' + self.details)
         self.buttons["details_button"].setDisabled(True)
 
+    def progressbar_cancel_clicked(self):
+        self.progressbar_canceled = True
+        
+
+    @pyqtSlot()
+    def value(self):
+        return self.progressBar.value()
+
+    @pyqtSlot(int)
+    def setValue(self, value):
+        self.progressBar.setValue(value)
+
+    @pyqtSlot(str)
+    def setLabelText(self, text):
+        self.label.setText(text)
+
+    @pyqtSlot(int)
+    def setMaximum(self, maximum):
+        self.progressBar.setMaximum(maximum)
+
+    @pyqtSlot()
+    def showCancelButton(self):
+        if not "cancel_button" in self.buttons:
+            self.buttons["cancel_button"] = QPushButton(self.button_names["cancel_button"])
+            self.buttons["cancel_button"].clicked.connect(self.progressbar_cancel_clicked)
+            self.horizontalLayout.addWidget(self.buttons["cancel_button"])
+        self.buttons["cancel_button"].show()
+        self.progressbar_canceled = False
+
+    @pyqtSlot()
+    def ignoreCancel(self):
+        self.buttons["cancel_button"].hide()
+
+    @pyqtSlot()
+    def wasCancelled(self):
+        return self.progressbar_canceled = False
+
+#   TODO: Fix them
+    @pyqtSlot()
+    def maximum(self):
+        return self.progressBar.maximum()
+
+#    AttributeError: 'QProgressBar' object has no attribute 'autoClose'
+#    @pyqtSlot()
+#    def autoClose(self):
+#        return self.progressBar.autoClose()
+
 
 def call_parser():
     parser = ArgumentParser()
@@ -222,9 +301,18 @@ if __name__ == '__main__':
         form = MainWindow(arguments=arguments)
         form.show()
 
+        if arguments.forkedprogressbar:
+            adaptor = DBusAdaptor(form)
+            connection = QDBusConnection.sessionBus()
+            connection.registerObject('/ProgressDialog', form, QDBusConnection.ExportAllSlots)
+            connection.registerService(arguments.dbusname[0])
+
         app.exec_()
     else:
         progname = "pydialog"
-        dbusname = " --dbusname valami" # TODO: dbus
-        cmd = progname + " ".join(sys.argv[1:]).replace("--progressbar", " --forkedprogressbar") + dbusname + " &"
+        dbusname = "org.kde.kdialog"
+        dbusname += "-" + str(os.getpid())
+        print (dbusname + " /ProgressDialog")
+        cmd = progname + " ".join(sys.argv[1:]).replace("--progressbar", " --forkedprogressbar") + " --dbusname '" + dbusname + "' &"
         os.system(cmd)
+        sys.exit(0)
