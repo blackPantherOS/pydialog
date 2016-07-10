@@ -73,6 +73,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
 
         self.null_extra_arg = False
+        self.progressbar_autoclose = False
+        self.progressbar_maximum = 10
 
         if arguments.title:
             self.setWindowTitle(arguments.title)
@@ -192,6 +194,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     @pyqtSlot(int)
     def setValue(self, value):
         self.progressBar.setValue(value)
+        if self.progressbar_autoclose and value == self.progessbar_maximum:
+            sys.exit(0)
 
     @pyqtSlot(str)
     def setLabelText(self, text):
@@ -200,6 +204,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     @pyqtSlot(int)
     def setMaximum(self, maximum):
         self.progressBar.setMaximum(maximum)
+        self.progressbar_maximum = maximum
 
     @pyqtSlot()
     def showCancelButton(self):
@@ -216,17 +221,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
     @pyqtSlot()
     def wasCancelled(self):
-        return self.progressbar_canceled = False
+        return self.progressbar_canceled
 
-#   TODO: Fix them
+    @pyqtSlot()
+    def autoClose(self):
+        self.progressbar_autoclose = True
+
     @pyqtSlot()
     def maximum(self):
-        return self.progressBar.maximum()
-
-#    AttributeError: 'QProgressBar' object has no attribute 'autoClose'
-#    @pyqtSlot()
-#    def autoClose(self):
-#        return self.progressBar.autoClose()
+        return self.progressbar_maximum
 
 
 def call_parser():
