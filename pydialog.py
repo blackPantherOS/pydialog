@@ -34,9 +34,15 @@ class DBusAdaptor(QDBusAbstractAdaptor):
     Q_CLASSINFO("D-Bus Interface", 'org.kde.kdialog.ProgressDialog')
 
     Q_CLASSINFO("D-Bus Introspection", '''<interface name="org.kde.kdialog.ProgressDialog">
-    <property name="maximum" type="i" access="readwrite"/>
-    <property name="value" type="i" access="readwrite"/>
-    <property name="autoClose" type="b" access="readwrite"/>
+    <method name="maximum">
+      <arg direction="out" type="i"/>
+    </method>
+    <method name="value">
+      <arg direction="out" type="i"/>
+    </method>
+    <method name="autoClose">
+      <arg direction="out" type="b"/>
+    </method>
     <method name="setLabelText">
       <arg type="s" name="label" direction="in"/>
     </method>
@@ -132,8 +138,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.enable_buttons(["continue_button", "cancel_button"])
             self.label.setText(arguments.warningcontinuecancel)
         
-        elif arguments.progressbar:
-            self.label.setText(arguments.progressbar[0])
+        elif arguments.forkedprogressbar:
+            self.label.setText(arguments.forkedprogressbar[0])
             
 
         if not self.null_extra_arg:
@@ -203,6 +209,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
     @pyqtSlot(int)
     def setMaximum(self, maximum):
+        print ("ITT VOKKK")
         self.progressBar.setMaximum(maximum)
         self.progressbar_maximum = maximum
 
