@@ -209,7 +209,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
     @pyqtSlot(int)
     def setMaximum(self, maximum):
-        print ("ITT VOKKK")
         self.progressBar.setMaximum(maximum)
         self.progressbar_maximum = maximum
 
