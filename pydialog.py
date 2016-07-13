@@ -10,6 +10,7 @@
 
 import sys, os, time
 import gettext
+import subprocess
 
 from PyQt5.QtCore import Qt, pyqtSlot, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection
@@ -322,6 +323,12 @@ if __name__ == '__main__':
         dbusname = "org.kde.kdialog"
         dbusname += "-" + str(os.getpid())
         print (dbusname + " /ProgressDialog")
-        cmd = progname + " ".join(sys.argv[1:]).replace("--progressbar", " --forkedprogressbar") + " --dbusname '" + dbusname + "' &"
-        os.system(cmd)
+        args = sys.argv[:]
+        o = "--progressbar"
+        i = args.index(o)
+        args[i] = "--forked" + args[i][2:]
+        args.append("--dbusname")
+        args.append(dbusname)
+        args.append("&")
+        subprocess.Popen(args)
         sys.exit(0)
