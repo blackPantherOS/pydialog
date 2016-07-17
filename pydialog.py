@@ -12,7 +12,7 @@ import sys, os, time
 import gettext
 import subprocess
 
-from PyQt5.QtCore import Qt, pyqtSlot, Q_CLASSINFO
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtProperty, Q_CLASSINFO, QObject
 from PyQt5.QtDBus import QDBusConnection
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
@@ -30,22 +30,19 @@ from modules import window1
 gettext.install("pydialog", "/usr/share/locale")
 
 
-class DBusAdaptor(QDBusAbstractAdaptor):
+class DBusAdaptor(QDBusAbstractAdaptor, QObject):
 
     Q_CLASSINFO("D-Bus Interface", 'org.kde.kdialog.ProgressDialog')
 
     Q_CLASSINFO("D-Bus Introspection", '''<interface name="org.kde.kdialog.ProgressDialog">
-    <method name="maximum">
-      <arg direction="out" type="i"/>
-    </method>
-    <method name="value">
-      <arg direction="out" type="i"/>
-    </method>
-    <method name="autoClose">
-      <arg direction="out" type="b"/>
-    </method>
+    <property name="maximum" type="i" access="readwrite"/>
+    <property name="value" type="i" access="readwrite"/>
+    <property name="autoClose" type="b" access="readwrite"/>    
     <method name="setLabelText">
       <arg type="s" name="label" direction="in"/>
+    </method>
+    <method name="ignoreCancel">
+      <arg name="value" type="b" direction="in"/>
     </method>
     <method name="showCancelButton">
       <arg name="value" type="b" direction="in"/>
@@ -58,12 +55,66 @@ class DBusAdaptor(QDBusAbstractAdaptor):
 
     def __init__(self, parent):
         super(DBusAdaptor, self).__init__(parent)
+        self.parent = parent
 
-        self.setAutoRelaySignals(True)
+        self.progressbar_autoclose = False
+        self.progressbar_maximum = 10
+#        self.maximum = pyqtProperty("int", fget=self.getMaximum, fset=self.setMaximum)
+#        self.setAutoRelaySignals(True)
         
     @pyqtSlot()
     def close(self):
-        sys.exit(0)
+        self.parent.close()
+
+    @pyqtSlot()
+    def autoClose(self):
+        self.progressbar_autoclose = True
+
+    @pyqtSlot()
+    def value(self):
+        print (self.parent.progressBar.value(), end="", flush=True)
+
+    @pyqtSlot(int)
+    def setValue(self, value):
+        self.parent.progressBar.setValue(value)
+        if self.progressbar_autoclose and value == self.progessbar_maximum:
+            self.parent.close()
+
+    @pyqtProperty(int)
+    def maximum(self): # BUG: No such method 'maximum' in any interface at object path '/ProgressDialog' (signature '') 
+#        print (self.progressbar_maximum, end="", flush=True)
+        return self.progressbar_maximum
+ 
+    @maximum.setter
+    def maximum(self, maximum):
+        self.parent.progressBar.setMaximum(maximum)
+        self.progressbar_maximum = maximum # TODO: maybe it is not important
+
+    @pyqtSlot(str)
+    def setLabelText(self, text):
+        self.parent.label.setText(text)
+
+    @pyqtSlot(bool)
+    def showCancelButton(self, value):
+        if value:
+            self.parent.showCancelButton()
+        else:
+            self.parent.buttons["cancel_button"].hide()
+
+    @pyqtSlot(bool)
+    def ignoreCancel(self, status):
+        if status:
+            self.parent.buttons["cancel_button"].hide()
+        else:
+            self.parent.buttons["cancel_button"].show()
+
+    @pyqtSlot()
+    def wasCancelled(self):
+        if self.parent.progressbar_cancelled:
+            print ("true", end="", flush=True)
+        else:
+            print ("false", end="", flush=True)
+        
 
 
 
@@ -80,8 +131,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
 
         self.null_extra_arg = False
-        self.progressbar_autoclose = False
-        self.progressbar_maximum = 10
+        self.progressbar_cancelled = False
 
         if arguments.title:
             self.setWindowTitle(arguments.title)
@@ -191,53 +241,16 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.buttons["details_button"].setDisabled(True)
 
     def progressbar_cancel_clicked(self):
-        self.progressbar_canceled = True
-        
+        self.progressbar_cancelled = True
 
-    @pyqtSlot()
-    def value(self):
-        return self.progressBar.value()
-
-    @pyqtSlot(int)
-    def setValue(self, value):
-        self.progressBar.setValue(value)
-        if self.progressbar_autoclose and value == self.progessbar_maximum:
-            sys.exit(0)
-
-    @pyqtSlot(str)
-    def setLabelText(self, text):
-        self.label.setText(text)
-
-    @pyqtSlot(int)
-    def setMaximum(self, maximum):
-        self.progressBar.setMaximum(maximum)
-        self.progressbar_maximum = maximum
-
-    @pyqtSlot()
     def showCancelButton(self):
         if not "cancel_button" in self.buttons:
             self.buttons["cancel_button"] = QPushButton(self.button_names["cancel_button"])
             self.buttons["cancel_button"].clicked.connect(self.progressbar_cancel_clicked)
             self.horizontalLayout.addWidget(self.buttons["cancel_button"])
+            self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
-        self.progressbar_canceled = False
-
-    @pyqtSlot()
-    def ignoreCancel(self):
-        self.buttons["cancel_button"].hide()
-
-    @pyqtSlot()
-    def wasCancelled(self):
-        return self.progressbar_canceled
-
-    @pyqtSlot()
-    def autoClose(self):
-        self.progressbar_autoclose = True
-
-    @pyqtSlot()
-    def maximum(self):
-        return self.progressbar_maximum
-
+        
 
 def call_parser():
     parser = ArgumentParser()
@@ -314,7 +327,7 @@ if __name__ == '__main__':
         if arguments.forkedprogressbar:
             adaptor = DBusAdaptor(form)
             connection = QDBusConnection.sessionBus()
-            connection.registerObject('/ProgressDialog', form, QDBusConnection.ExportAllSlots)
+            connection.registerObject('/ProgressDialog', adaptor, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllProperties)
             connection.registerService(arguments.dbusname[0])
 
         app.exec_()
