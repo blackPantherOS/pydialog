@@ -133,7 +133,7 @@ class ServerAdaptor(QDBusAbstractAdaptor):
     @autoClose.setter
     def autoClose(self, v):
         self.parent().autoClose = v
-#
+
     @pyqtSlot(result=bool)
     def wasCancelled(self):
         return self.parent().wasCancelled()
@@ -297,6 +297,9 @@ def call_parser():
     parser.add_argument("--cancel-label", help=_("The label of the cancel-button"), dest="cancellabel", metavar=_("<text>"))
     parser.add_argument("--continue-label", help=_("Use text as Continue button label"), dest="continuelabel", metavar=_("<text>"))
     parser.add_argument("--icon", help=_("Use icon as the application icon."), dest="icon", metavar=_("<path>"))
+    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), nargs="+", metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--forkedprogressbar", help=_(""), nargs="+", metavar=_("<text> [totalsteps]"))
+    parser.add_argument("--dbusname", help=_(""), nargs="+", metavar=_("<text>"))
 
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
@@ -315,9 +318,6 @@ def call_parser():
 
     # TODO: Unfinished options below
 
-    parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), nargs="+", metavar=_("<text> [totalsteps]"))
-    parser.add_argument("--forkedprogressbar", help=_(""), nargs="+", metavar=_("<text> [totalsteps]"))
-    parser.add_argument("--dbusname", help=_(""), nargs="+", metavar=_("<text>"))
 #    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
 #    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
 #    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
