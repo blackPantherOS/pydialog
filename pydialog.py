@@ -33,7 +33,11 @@ class Server(QObject):
     def __init__(self, ui):
         QObject.__init__(self)
         self.__dbusAdaptor = ServerAdaptor(self)
+        self.autoclose = False
         self.ui = ui
+
+    def close(self):
+        self.ui.close()
 
     @property
     def maximum(self):
@@ -50,9 +54,31 @@ class Server(QObject):
     @value.setter
     def value(self, v):
         self.ui.progressBar.setValue(v)
+        if self.autoclose and v == self.ui.progressBar.maximum():
+            self.ui.close()
 
-    def close(self):
-        self.ui.close()
+    @property
+    def autoClose(self):
+        return self.autoclose
+
+    @autoClose.setter
+    def autoClose(self, v):
+        self.autoclose = v
+
+    def wasCancelled(self):
+        return self.ui.progressbar_cancelled
+
+    def showCancelButton(self, v):
+        if v:
+            self.ui.showCancelButton()
+        else:
+            self.ui.buttons["cancel_button"].hide()
+
+    def ignoreCancel(self, v):
+        self.ui.buttons["cancel_button"].setDisabled(v)        
+        
+    def setLabelText(self, v):
+        self.ui.label.setText(v)
 
 
 class ServerAdaptor(QDBusAbstractAdaptor):
@@ -62,11 +88,6 @@ class ServerAdaptor(QDBusAbstractAdaptor):
     '    <property name="maximum" type="i" access="readwrite"/>'
     '    <property name="value" type="i" access="readwrite"/>'
     '    <property name="autoClose" type="b" access="readwrite"/>'
-    '    <property name="name" type="s" access="readwrite"/>\n'
-    '    <method name="echo">\n'
-    '      <arg direction="in" type="s" name="phrase"/>\n'
-    '      <arg direction="out" type="s" name="echoed"/>\n'
-    '    </method>\n'
     '    <method name="setLabelText">'
     '      <arg type="s" name="label" direction="in"/>'
     '    </method>'
@@ -104,6 +125,30 @@ class ServerAdaptor(QDBusAbstractAdaptor):
     @value.setter
     def value(self, v):
         self.parent().value = v
+
+    @pyqtProperty(bool)
+    def autoClose(self):
+        return self.parent().autoClose
+
+    @autoClose.setter
+    def autoClose(self, v):
+        self.parent().autoClose = v
+#
+    @pyqtSlot(result=bool)
+    def wasCancelled(self):
+        return self.parent().wasCancelled()
+
+    @pyqtSlot(bool)
+    def showCancelButton(self, v):
+        self.parent().showCancelButton(v)
+
+    @pyqtSlot(bool)
+    def ignoreCancel(self, v):
+        self.parent().ignoreCancel(v)
+
+    @pyqtSlot(str)
+    def setLabelText(self, v):
+        self.parent().setLabelText(v)
 
 
 class ReturnClass():
