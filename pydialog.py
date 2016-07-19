@@ -29,93 +29,81 @@ from modules import window1
 
 gettext.install("pydialog", "/usr/share/locale")
 
+class Server(QObject):
+    def __init__(self, ui):
+        QObject.__init__(self)
+        self.__dbusAdaptor = ServerAdaptor(self)
+        self.ui = ui
 
-class DBusAdaptor(QDBusAbstractAdaptor, QObject):
+    @property
+    def maximum(self):
+        return self.ui.progressBar.maximum()
 
-    Q_CLASSINFO("D-Bus Interface", 'org.kde.kdialog.ProgressDialog')
+    @maximum.setter
+    def maximum(self, v):
+        self.ui.progressBar.setMaximum(v)
 
-    Q_CLASSINFO("D-Bus Introspection", '''<interface name="org.kde.kdialog.ProgressDialog">
-    <property name="maximum" type="i" access="readwrite"/>
-    <property name="value" type="i" access="readwrite"/>
-    <property name="autoClose" type="b" access="readwrite"/>    
-    <method name="setLabelText">
-      <arg type="s" name="label" direction="in"/>
-    </method>
-    <method name="ignoreCancel">
-      <arg name="value" type="b" direction="in"/>
-    </method>
-    <method name="showCancelButton">
-      <arg name="value" type="b" direction="in"/>
-    </method>
-    <method name="wasCancelled">
-      <arg type="b" direction="out"/>
-    </method>
-    <method name="close"/>
-    </interface>''')
+    @property
+    def value(self):
+        return self.ui.progressBar.value()
+
+    @value.setter
+    def value(self, v):
+        self.ui.progressBar.setValue(v)
+
+    def close(self):
+        self.ui.close()
+
+
+class ServerAdaptor(QDBusAbstractAdaptor):
+    Q_CLASSINFO("D-Bus Interface", "org.kde.kdialog")
+    Q_CLASSINFO("D-Bus Introspection",
+    '<interface name="org.kde.kdialog">\n'
+    '    <property name="maximum" type="i" access="readwrite"/>'
+    '    <property name="value" type="i" access="readwrite"/>'
+    '    <property name="autoClose" type="b" access="readwrite"/>'
+    '    <property name="name" type="s" access="readwrite"/>\n'
+    '    <method name="echo">\n'
+    '      <arg direction="in" type="s" name="phrase"/>\n'
+    '      <arg direction="out" type="s" name="echoed"/>\n'
+    '    </method>\n'
+    '    <method name="setLabelText">'
+    '      <arg type="s" name="label" direction="in"/>'
+    '    </method>'
+    '    <method name="ignoreCancel">'
+    '      <arg name="value" type="b" direction="in"/>'
+    '    </method>'
+    '    <method name="showCancelButton">'
+    '      <arg name="value" type="b" direction="in"/>'
+    '    </method>'
+    '    <method name="wasCancelled">'
+    '      <arg type="b" direction="out"/>'
+    '    </method>'
+    '    <method name="close"/>'
+    '</interface>\n')
 
     def __init__(self, parent):
-        super(DBusAdaptor, self).__init__(parent)
-        self.parent = parent
+        super().__init__(parent)
 
-        self.progressbar_autoclose = False
-        self.progressbar_maximum = 10
-#        self.maximum = pyqtProperty("int", fget=self.getMaximum, fset=self.setMaximum)
-#        self.setAutoRelaySignals(True)
-        
     @pyqtSlot()
     def close(self):
-        self.parent.close()
-
-    @pyqtSlot()
-    def autoClose(self):
-        self.progressbar_autoclose = True
-
-    @pyqtSlot()
-    def value(self):
-        print (self.parent.progressBar.value(), end="", flush=True)
-
-    @pyqtSlot(int)
-    def setValue(self, value):
-        self.parent.progressBar.setValue(value)
-        if self.progressbar_autoclose and value == self.progessbar_maximum:
-            self.parent.close()
+        self.parent().close()
 
     @pyqtProperty(int)
-    def maximum(self): # BUG: No such method 'maximum' in any interface at object path '/ProgressDialog' (signature '') 
-#        print (self.progressbar_maximum, end="", flush=True)
-        return self.progressbar_maximum
- 
+    def maximum(self):
+        return self.parent().maximum
+
     @maximum.setter
-    def maximum(self, maximum):
-        self.parent.progressBar.setMaximum(maximum)
-        self.progressbar_maximum = maximum # TODO: maybe it is not important
+    def maximum(self, v):
+        self.parent().maximum = v
 
-    @pyqtSlot(str)
-    def setLabelText(self, text):
-        self.parent.label.setText(text)
+    @pyqtProperty(int)
+    def value(self):
+        return self.parent().value
 
-    @pyqtSlot(bool)
-    def showCancelButton(self, value):
-        if value:
-            self.parent.showCancelButton()
-        else:
-            self.parent.buttons["cancel_button"].hide()
-
-    @pyqtSlot(bool)
-    def ignoreCancel(self, status):
-        if status:
-            self.parent.buttons["cancel_button"].hide()
-        else:
-            self.parent.buttons["cancel_button"].show()
-
-    @pyqtSlot()
-    def wasCancelled(self):
-        if self.parent.progressbar_cancelled:
-            print ("true", end="", flush=True)
-        else:
-            print ("false", end="", flush=True)
-        
-
+    @value.setter
+    def value(self, v):
+        self.parent().value = v
 
 
 class ReturnClass():
@@ -325,10 +313,14 @@ if __name__ == '__main__':
         form.show()
 
         if arguments.forkedprogressbar:
-            adaptor = DBusAdaptor(form)
-            connection = QDBusConnection.sessionBus()
-            connection.registerObject('/ProgressDialog', adaptor, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllProperties)
-            connection.registerService(arguments.dbusname[0])
+            bus = QDBusConnection.sessionBus()
+            server = Server(form)
+            bus.registerObject('/ProgressDialog', server)
+            bus.registerService(arguments.dbusname[0])
+#            adaptor = DBusAdaptor(form)
+#            connection = QDBusConnection.sessionBus()
+#            connection.registerObject('/ProgressDialog', adaptor, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllProperties)
+#            connection.registerService(arguments.dbusname[0])
 
         app.exec_()
     else:
