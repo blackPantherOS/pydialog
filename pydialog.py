@@ -352,7 +352,7 @@ if __name__ == '__main__':
     arguments = call_parser()
     
     if not arguments.progressbar:
-        app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove from the sys.argv! Call the parse_args before it if you want to use everything.
+        app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove elements from the sys.argv! Call the parse_args before it if you want to use them.
 
         form = MainWindow(arguments=arguments)
         form.show()
@@ -362,11 +362,6 @@ if __name__ == '__main__':
             server = Server(form)
             bus.registerObject('/ProgressDialog', server)
             bus.registerService(arguments.dbusname[0])
-#            adaptor = DBusAdaptor(form)
-#            connection = QDBusConnection.sessionBus()
-#            connection.registerObject('/ProgressDialog', adaptor, QDBusConnection.ExportAllSlots | QDBusConnection.ExportAllProperties)
-#            connection.registerService(arguments.dbusname[0])
-
         app.exec_()
     else:
         progname = "pydialog"
@@ -379,6 +374,5 @@ if __name__ == '__main__':
         args[i] = "--forked" + args[i][2:]
         args.append("--dbusname")
         args.append(dbusname)
-        args.append("&")
-        subprocess.Popen(args)
+        subprocess.Popen(args, stdout=sys.stderr)
         sys.exit(0)
