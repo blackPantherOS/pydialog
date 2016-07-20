@@ -82,9 +82,9 @@ class Server(QObject):
 
 
 class ServerAdaptor(QDBusAbstractAdaptor):
-    Q_CLASSINFO("D-Bus Interface", "org.kde.kdialog")
+    Q_CLASSINFO("D-Bus Interface", "org.kde.kdialog.ProgressDialog")
     Q_CLASSINFO("D-Bus Introspection",
-    '<interface name="org.kde.kdialog">\n'
+    '<interface name="org.kde.kdialog.ProgressDialog">\n'
     '    <property name="maximum" type="i" access="readwrite"/>'
     '    <property name="value" type="i" access="readwrite"/>'
     '    <property name="autoClose" type="b" access="readwrite"/>'
@@ -105,6 +105,7 @@ class ServerAdaptor(QDBusAbstractAdaptor):
 
     def __init__(self, parent):
         super().__init__(parent)
+#        self.setAutoRelaySignals(True)
 
     @pyqtSlot()
     def close(self):
