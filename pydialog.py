@@ -100,6 +100,7 @@ class ReturnClass():
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
+        from PyQt5.QtGui import QIcon
         global arguments
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -441,7 +442,3 @@ if __name__ == '__main__' and arguments.progressbar:
             pass
         time.sleep(0.1)
     sys.exit(0)
-
-
-
-
