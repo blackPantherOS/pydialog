@@ -224,8 +224,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
         elif arguments.forkedprogressbar:
             self.label.setText(arguments.forkedprogressbar[0])
+            if len(arguments.forkedprogressbar) > 1:
+                self.progressBar.setMaximum(int(arguments.forkedprogressbar[1]))
             
-
         if not self.null_extra_arg:
             if not arguments.extra_arguments:
                 sys.exit(_("There is no extra argument!"))
@@ -327,8 +328,8 @@ def call_parser():
 
 #    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
 #    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"))
-#    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 #    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
+
 #    parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
 #    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"))
 #    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"))
@@ -349,6 +350,7 @@ def call_parser():
 #    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"))
 #    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
 #    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
+#    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
     parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
 
