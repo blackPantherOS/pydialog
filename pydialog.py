@@ -8,9 +8,8 @@
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
 #*************************************************************************************(c)2002-2016********
 
-import sys, os, time
+import sys
 import gettext
-import subprocess
 
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtProperty, Q_CLASSINFO, QObject
 from PyQt5.QtDBus import QDBusConnection
@@ -163,7 +162,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None, arguments=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-
+        
         self.null_extra_arg = False
         self.progressbar_cancelled = False
 
@@ -285,6 +284,13 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
         
+#    def resizeEvent(self, event):
+#        limit = 100
+#        if event.size().width() > limit and event.oldSize().width() < limit:
+#            self.label.setWordWrap(True)
+#        elif event.size().width() < limit and event.oldSize().width() > limit:
+#            self.label.setWordWrap(False)
+        
 
 def call_parser():
     parser = ArgumentParser()
@@ -365,6 +371,7 @@ if __name__ == '__main__':
             bus.registerService(arguments.dbusname[0])
         app.exec_()
     else:
+        import subprocess, dbus, time, os
         progname = "pydialog"
         dbusname = "org.kde.kdialog"
         dbusname += "-" + str(os.getpid())
@@ -376,4 +383,12 @@ if __name__ == '__main__':
         args.append("--dbusname")
         args.append(dbusname)
         subprocess.Popen(args, stdout=sys.stderr)
+        bus = dbus.Bus()
+        for j in range(20):
+            try:
+                o = bus.get_object(dbusname, "/ProgressDialog")
+                break
+            except:
+                pass
+            time.sleep(0.1)
         sys.exit(0)
