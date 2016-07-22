@@ -51,13 +51,11 @@ def call_parser():
     parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
 
     # TODO: Untested options below
-    
+    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
 
     # TODO: Unfinished options below
-
-    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")
+    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
-    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs=2)
     parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
 
 #    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
@@ -141,7 +139,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.comboBox.hide()
         if not arguments.inputbox and not arguments.password:
             self.lineEdit.hide()
-        if not arguments.combobox and not arguments.inputbox and not arguments.password:
+        if not arguments.combobox and not arguments.password:
             self.label_2.hide()
 
 
@@ -199,6 +197,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if len(arguments.slider) > 3:
                 self.horizontalSlider.setSingleStep(int(arguments.slider[3]))
                 self.horizontalSlider.setPageStep(int(arguments.slider[3]))
+        
+        elif arguments.inputbox:
+            self.enable_buttons(["ok_button", "cancel_button"])
+            self.label.setText(arguments.inputbox[0])
+            if len(arguments.inputbox) > 1:
+                self.lineEdit.setText(arguments.inputbox[1])
 
 
     def set_button_labels(self):
@@ -227,21 +231,29 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 if button_id == "details_button":
                     noab -= 1
                     self.buttons["details_button"].clicked.connect(self.details_button_clicked)
-                elif button_id == "ok_button" and arguments.slider:
-                    self.buttons[button_id].clicked.connect(self.slider_ok)
+                elif button_id == "ok_button" and (arguments.slider or arguments.inputbox):
+                    if arguments.slider:
+                        self.buttons[button_id].clicked.connect(self.slider_ok)
+                    elif arguments.inputbox:
+                        self.buttons[button_id].clicked.connect(self.inputbox_ok)
+                    i += 1
                 else:
                     if i < noab-1:
                         objname = button_id[:-7]
                         self.__dict__[objname] = ReturnClass(i)
                         self.buttons[button_id].clicked.connect(self.__dict__[objname])
                     else:
-                       self.reject = ReturnClass(i)
-                       self.buttons[button_id].clicked.connect(self.reject)
+                        self.reject = ReturnClass(i)
+                        self.buttons[button_id].clicked.connect(self.reject)
                     i += 1
 
 
     def slider_ok(self, v):
         print(self.horizontalSlider.value())
+        sys.exit(0)
+
+    def inputbox_ok(self, v):
+        print(self.lineEdit.text())
         sys.exit(0)
 
     def enable_buttons (self, button_list):
@@ -272,7 +284,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
 
     
-if __name__ == '__main__' and not arguments.progressbar and not arguments.forkedprogressbar:
+if __name__ == '__main__' and not (arguments.progressbar or arguments.forkedprogressbar):
         app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove elements from the sys.argv! Call the parse_args before it if you want to use them.
 
         form = MainWindow()
