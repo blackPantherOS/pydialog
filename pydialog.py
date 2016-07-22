@@ -82,7 +82,7 @@ def call_parser():
 #    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
 #    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
-    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
+#    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
 
     return parser.parse_args()
 
@@ -112,15 +112,42 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             "continue_button":_("Continue"),
             "cancel_button":_("Cancel")
         }
+        self.arguments_checked = False
+        self.create_elements()
+
+
+    def argument_error(self, name="", error_type=_("Missing arguments")):
+        global arguments
+        self.arguments_checked = True
+        for argument in arguments.__dict__:
+            exec("arguments."+argument+"=None")
+        arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
+        self.create_elements()
+
+
+    def arguments_check(self):
+        unfinished = ["combobox", "password"]
+        for argument in arguments.__dict__:
+            if not eval("arguments."+argument) is None:
+                if argument in unfinished:
+                    self.argument_error(argument, _("This option is under development"))
+                    return True
+        for argument in arguments.__dict__:
+            if not eval("arguments."+argument) is None:
+                n =  eval("len(arguments.%s)" % argument)
+                if n == 0 or ("detailed" in argument and n < 2):
+                    self.argument_error(argument)
+                    return True
+        self.arguments_checked = True
+        return False
+    
+
+    def create_elements(self):
+        if not self.arguments_checked:
+            if self.arguments_check():
+                return False
         self.active_buttons = dict((e, False) for e in self.button_names)
-
         self.progressbar_cancelled = False
-
-        if arguments.title:
-            self.setWindowTitle(arguments.title)
-        if arguments.icon:
-            icon = QIcon(arguments.icon)
-            self.setWindowIcon(icon)
 
         self.hide_unused_elements()
         self.init_conf()
@@ -146,6 +173,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def init_conf(self):
         """ Initial configurations (buttons and labels) """
         global arguments
+        if arguments.title:
+            self.setWindowTitle(arguments.title)
+        if arguments.icon:
+            icon = QIcon(arguments.icon)
+            self.setWindowIcon(icon)
+
         if arguments.yesno or arguments.warningyesno:
             self.enable_buttons(["yes_button", "no_button"])
             if arguments.yesno:
@@ -165,7 +198,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if arguments.sorry:
                 self.label.setText(arguments.sorry)
             elif arguments.error:
-                self.label.setText(arguments.error)
+                self.label.setText(arguments.error[0])
             else:
                 self.label.setText(arguments.msgbox)
 
