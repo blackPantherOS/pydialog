@@ -114,7 +114,6 @@ class ReturnClass():
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
-        from PyQt5.QtGui import QIcon
         global arguments
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -162,6 +161,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.title:
             self.setWindowTitle(arguments.title)
         if arguments.icon:
+            from PyQt5.QtGui import QIcon
             icon = QIcon(arguments.icon)
             self.setWindowIcon(icon)
 
@@ -264,7 +264,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                     i += 1
                 else:
                     if i < noab-1:
-                        objname = button_id[:-7]
+                        objname = "rc" + button_id[:-7]
                         self.__dict__[objname] = ReturnClass(i)
                         self.buttons[button_id].clicked.connect(self.__dict__[objname])
                     else:
