@@ -255,19 +255,31 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
         self.reject_value = noab - 1
 
-        i = 0
-        for button_id in self.button_ids:
-            if self.active_buttons[button_id]:
-                self.buttons[button_id] = QPushButton(self.button_names[button_id])
-                self.horizontalLayout.addWidget(self.buttons[button_id])
-                if button_id == "details_button":
-                    self.buttons["details_button"].clicked.connect(self.details_button_clicked)
-                elif button_id == "cancel_button":
-                    self.buttons[button_id].clicked.connect(self.reject)
-                else:
-                    self.button_values[button_id] = i
-                    exec("self.buttons[button_id].clicked.connect(self."+button_id+"_clicked)")
-                    i += 1
+        if self.active_buttons["yes_button"]:
+            self.buttons["yes_button"] = QPushButton(self.button_names["yes_button"])
+            self.horizontalLayout.addWidget(self.buttons["yes_button"])
+            self.buttons["yes_button"].clicked.connect(self.yes_button_clicked)
+        if self.active_buttons["no_button"]:
+            self.buttons["no_button"] = QPushButton(self.button_names["no_button"])
+            self.horizontalLayout.addWidget(self.buttons["no_button"])
+            self.buttons["no_button"].clicked.connect(self.no_button_clicked)
+        if self.active_buttons["cancel_button"]:
+            self.buttons["cancel_button"] = QPushButton(self.button_names["cancel_button"])
+            self.horizontalLayout.addWidget(self.buttons["cancel_button"])
+            self.buttons["cancel_button"].clicked.connect(self.reject)
+#        i = 0
+#        for button_id in self.button_ids:
+#            if self.active_buttons[button_id]:
+#                self.buttons[button_id] = QPushButton(self.button_names[button_id])
+#                self.horizontalLayout.addWidget(self.buttons[button_id])
+#                if button_id == "details_button":
+#                    self.buttons["details_button"].clicked.connect(self.details_button_clicked)
+#                elif button_id == "cancel_button":
+#                    self.buttons[button_id].clicked.connect(self.reject)
+#                else:
+#                    self.button_values[button_id] = i
+#                    exec("self.buttons[button_id].clicked.connect(self."+button_id+"_clicked)")
+#                    i += 1
     
     def ok_button_clicked(self):
         if arguments.slider:
@@ -275,23 +287,23 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         elif arguments.inputbox or arguments.password:
             print(self.lineEdit.text())
         self.accept()
-        safety_exit(self.button_values["ok_button"])
+#        safety_exit(self.button_values["ok_button"])
     
     def yes_button_clicked(self):
         self.accept()
-        safety_exit(self.button_values["yes_button"])
+#        safety_exit(self.button_values["yes_button"])
     
     def no_button_clicked(self):
         self.accept()
-        safety_exit(self.button_values["no_button"])
+#        safety_exit(self.button_values["no_button"])
     
     def continue_button_clicked(self):
         self.accept()
-        safety_exit(self.button_values["continue_button"])
+#        safety_exit(self.button_values["continue_button"])
     
-    def reject(self):
-        self.accept()
-        safety_exit(self.reject_value)
+#    def reject(self):
+#        self.accept()
+#        safety_exit(self.reject_value)
 
     def enable_buttons (self, button_list):
         for button in button_list:
