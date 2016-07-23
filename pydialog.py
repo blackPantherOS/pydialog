@@ -108,7 +108,7 @@ def safety_exit(value):
     """Against the fuckin segfaults"""
     global app
     app.quit()
-    sys.exit(value)
+#    sys.exit(value)
 
 arguments = call_parser()
 
@@ -274,18 +274,23 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             print(self.horizontalSlider.value())
         elif arguments.inputbox or arguments.password:
             print(self.lineEdit.text())
+        self.accept()
         safety_exit(self.button_values["ok_button"])
     
     def yes_button_clicked(self):
+        self.accept()
         safety_exit(self.button_values["yes_button"])
     
     def no_button_clicked(self):
+        self.accept()
         safety_exit(self.button_values["no_button"])
     
     def continue_button_clicked(self):
+        self.accept()
         safety_exit(self.button_values["continue_button"])
     
     def reject(self):
+        self.accept()
         safety_exit(self.reject_value)
 
     def enable_buttons (self, button_list):
