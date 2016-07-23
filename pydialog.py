@@ -53,10 +53,10 @@ def call_parser():
     # TODO: Untested options below
     parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
     parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
+    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
 
     # TODO: Unfinished options below
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
-    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
 
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
@@ -96,11 +96,10 @@ def call_parser():
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
         "dontagain", "calendar", "attach", "textbox"]
     
-    for argument in arguments.__dict__:
+    for argument in unfinished:
         if not eval("arguments."+argument) is None:
-            if argument in unfinished:
-                argument_error(argument, _("This option is under development"))
-                break
+            argument_error(argument, _("This option is under development"))
+            break
     return arguments
 
 
