@@ -262,11 +262,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if self.active_buttons["no_button"]:
             self.buttons["no_button"] = QPushButton(self.button_names["no_button"])
             self.horizontalLayout.addWidget(self.buttons["no_button"])
-            self.buttons["no_button"].clicked.connect(self.no_button_clicked)
+            self.buttons["no_button"].clicked.connect(self.yes_button_clicked)
         if self.active_buttons["cancel_button"]:
             self.buttons["cancel_button"] = QPushButton(self.button_names["cancel_button"])
             self.horizontalLayout.addWidget(self.buttons["cancel_button"])
-            self.buttons["cancel_button"].clicked.connect(self.reject)
+            self.buttons["cancel_button"].clicked.connect(self.yes_button_clicked)
 #        i = 0
 #        for button_id in self.button_ids:
 #            if self.active_buttons[button_id]:
