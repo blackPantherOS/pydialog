@@ -52,39 +52,56 @@ def call_parser():
 
     # TODO: Untested options below
     parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
+    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
 
     # TODO: Unfinished options below
-    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
     parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
 
-#    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
-#    parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"))
+    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
+    parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
 
      # TODO: Waiting for GUI
 
-#    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"))
-#    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"))
-#    parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"))
-#    parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"))
-#    parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"))
-#    parser.add_argument("--getexistingdirectory", metavar=_("[startDir]"), help=_("File dialog to select an existing directory"))
-#    parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"))
-#    parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"))
-#    parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"))
-#    parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
-#    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"))
-#    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
-#    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"))
-#    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"))
-#    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"))
-#    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"))
-#    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"))
-#    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
+    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"), nargs='+')
+    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"), nargs='+')
+    parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"), nargs='+')
+    parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
+    parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"), nargs='*')
+    parser.add_argument("--getexistingdirectory", metavar=_("[startDir]"), help=_("File dialog to select an existing directory"), nargs='*')
+    parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"), nargs='*')
+    parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"), nargs='*')
+    parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"), nargs='*')
+    parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
+    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
+    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
+    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"), dest="separateoutput")
+    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
+    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs='+')
+    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"), nargs=1)
+    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
+    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
-#    parser.add_argument("extra_arguments", help=_("These depends from the used options"), nargs='*')
 
-    return parser.parse_args()
+    arguments = parser.parse_args()
+
+    def argument_error(name="", error_type=_("Missing arguments")):
+        for argument in arguments.__dict__:
+            exec("arguments."+argument+"=None")
+        arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
+
+
+    unfinished = ["combobox", "password", "textinputbox", "passivepopup", "menu", "checklist", 
+        "radiolist", "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
+        "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
+        "dontagain", "calendar", "attach", "textbox"]
+    
+    for argument in arguments.__dict__:
+        if not eval("arguments."+argument) is None:
+            if argument in unfinished:
+                argument_error(argument, _("This option is under development"))
+                break
+    return arguments
 
 
 arguments = call_parser()
@@ -112,40 +129,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             "continue_button":_("Continue"),
             "cancel_button":_("Cancel")
         }
-        self.arguments_checked = False
         self.create_elements()
-
-
-    def argument_error(self, name="", error_type=_("Missing arguments")):
-        global arguments
-        self.arguments_checked = True
-        for argument in arguments.__dict__:
-            exec("arguments."+argument+"=None")
-        arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
-        self.create_elements()
-
-
-    def arguments_check(self):
-        unfinished = ["combobox", "password"]
-        for argument in arguments.__dict__:
-            if not eval("arguments."+argument) is None:
-                if argument in unfinished:
-                    self.argument_error(argument, _("This option is under development"))
-                    return True
-        for argument in arguments.__dict__:
-            if not eval("arguments."+argument) is None:
-                n =  eval("len(arguments.%s)" % argument)
-                if n == 0 or ("detailed" in argument and n < 2):
-                    self.argument_error(argument)
-                    return True
-        self.arguments_checked = True
-        return False
     
 
     def create_elements(self):
-        if not self.arguments_checked:
-            if self.arguments_check():
-                return False
         self.active_buttons = dict((e, False) for e in self.button_names)
         self.progressbar_cancelled = False
 
