@@ -8,7 +8,7 @@
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
 #*************************************************************************************(c)2002-2016********
 
-import sys
+import sys, time
 import gettext
 
 from PyQt5.QtWidgets import QPushButton
@@ -102,14 +102,15 @@ def call_parser():
             break
     return arguments
 
+app = None
+
+def safety_exit(value):
+    """Against the fuckin segfaults"""
+    global app
+    app.quit()
+    sys.exit(value)
 
 arguments = call_parser()
-
-class ReturnClass():
-    def __init__(self, value):
-        self.value = value
-    def __call__(self):
-        sys.exit(self.value)
 
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
@@ -117,6 +118,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         global arguments
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.reject_value = 0
         
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -127,6 +130,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             "continue_button":_("Continue"),
             "cancel_button":_("Cancel")
         }
+        
+        self.button_values = {}
+        
         self.create_elements()
     
 
@@ -242,44 +248,45 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
 
-
     def create_buttons(self):
         global arguments
         self.buttons = {}
         
         noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
+        self.reject_value = noab - 1
+
         i = 0
         for button_id in self.button_ids:
             if self.active_buttons[button_id]:
                 self.buttons[button_id] = QPushButton(self.button_names[button_id])
                 self.horizontalLayout.addWidget(self.buttons[button_id])
                 if button_id == "details_button":
-                    noab -= 1
                     self.buttons["details_button"].clicked.connect(self.details_button_clicked)
-                elif button_id == "ok_button" and (arguments.slider or arguments.inputbox or arguments.password):
-                    if arguments.slider:
-                        self.buttons[button_id].clicked.connect(self.slider_ok)
-                    elif arguments.inputbox or arguments.password:
-                        self.buttons[button_id].clicked.connect(self.lineedit_ok)
-                    i += 1
+                elif button_id == "cancel_button":
+                    self.buttons[button_id].clicked.connect(self.reject)
                 else:
-                    if i < noab-1:
-                        objname = "rc" + button_id[:-7]
-                        self.__dict__[objname] = ReturnClass(i)
-                        self.buttons[button_id].clicked.connect(self.__dict__[objname])
-                    else:
-                        self.reject = ReturnClass(i)
-                        self.buttons[button_id].clicked.connect(self.reject)
+                    self.button_values[button_id] = i
+                    exec("self.buttons[button_id].clicked.connect(self."+button_id+"_clicked)")
                     i += 1
-
-
-    def slider_ok(self, v):
-        print(self.horizontalSlider.value())
-        sys.exit(0)
-
-    def lineedit_ok(self, v):
-        print(self.lineEdit.text())
-        sys.exit(0)
+    
+    def ok_button_clicked(self):
+        if arguments.slider:
+            print(self.horizontalSlider.value())
+        elif arguments.inputbox or arguments.password:
+            print(self.lineEdit.text())
+        safety_exit(self.button_values["ok_button"])
+    
+    def yes_button_clicked(self):
+        safety_exit(self.button_values["yes_button"])
+    
+    def no_button_clicked(self):
+        safety_exit(self.button_values["no_button"])
+    
+    def continue_button_clicked(self):
+        safety_exit(self.button_values["continue_button"])
+    
+    def reject(self):
+        safety_exit(self.reject_value)
 
     def enable_buttons (self, button_list):
         for button in button_list:
@@ -310,11 +317,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
     
 if __name__ == '__main__' and not (arguments.progressbar or arguments.forkedprogressbar):
-        app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove elements from the sys.argv! Call the parse_args before it if you want to use them.
+    app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove elements from the sys.argv! Call the parse_args before it if you want to use them.
 
-        form = MainWindow()
-        form.show()
-        app.exec_()
+    form = MainWindow()
+    form.show()
+    app.exec_()
 
 
 if arguments.forkedprogressbar:
@@ -458,7 +465,7 @@ if __name__ == '__main__' and arguments.forkedprogressbar:
 
 
 if __name__ == '__main__' and arguments.progressbar:
-    import subprocess, dbus, time, os
+    import subprocess, dbus, os
     progname = "pydialog"
     dbusname = "org.kde.kdialog"
     dbusname += "-" + str(os.getpid())
