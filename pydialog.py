@@ -91,7 +91,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["combobox", "password", "textinputbox", "passivepopup", "menu", "checklist", 
+    unfinished = ["combobox", "textinputbox", "passivepopup", "menu", "checklist", 
         "radiolist", "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
         "dontagain", "calendar", "attach", "textbox"]
@@ -224,6 +224,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if len(arguments.inputbox) > 1:
                 self.lineEdit.setText(arguments.inputbox[1])
 
+        elif arguments.password:
+            self.enable_buttons(["ok_button", "cancel_button"])
+            self.lineEdit.setEchoMode(2)
+            self.label.setText(arguments.password[0])
+            self.label_2.setText(_("Password:"))
+
 
     def set_button_labels(self):
         """Set the button labels"""
@@ -251,11 +257,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 if button_id == "details_button":
                     noab -= 1
                     self.buttons["details_button"].clicked.connect(self.details_button_clicked)
-                elif button_id == "ok_button" and (arguments.slider or arguments.inputbox):
+                elif button_id == "ok_button" and (arguments.slider or arguments.inputbox or arguments.password):
                     if arguments.slider:
                         self.buttons[button_id].clicked.connect(self.slider_ok)
-                    elif arguments.inputbox:
-                        self.buttons[button_id].clicked.connect(self.inputbox_ok)
+                    elif arguments.inputbox or arguments.password:
+                        self.buttons[button_id].clicked.connect(self.lineedit_ok)
                     i += 1
                 else:
                     if i < noab-1:
@@ -272,7 +278,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         print(self.horizontalSlider.value())
         sys.exit(0)
 
-    def inputbox_ok(self, v):
+    def lineedit_ok(self, v):
         print(self.lineEdit.text())
         sys.exit(0)
 
