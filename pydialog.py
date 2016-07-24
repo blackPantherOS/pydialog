@@ -302,8 +302,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
                 
-    def event(self, event):
-        time.sleep(0.1)
+    def event(self, event):   # DO NOT REMOVE! This is against the segmentation faults!
+        if event.type() == 12:
+            time.sleep(0.1)
         return True
 
 #    def resizeEvent(self, event):
