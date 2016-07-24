@@ -300,7 +300,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.horizontalLayout.addWidget(self.buttons["cancel_button"])
             self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
-        
+                
+    def event(self, event):
+        print (type(event))
+        return True
+
 #    def resizeEvent(self, event):
 #        limit = 100
 #        if event.size().width() > limit and event.oldSize().width() < limit:
