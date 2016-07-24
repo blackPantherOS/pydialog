@@ -8,7 +8,7 @@
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
 #*************************************************************************************(c)2002-2016********
 
-import sys
+import sys, time
 import gettext
 
 from PyQt5.QtWidgets import QPushButton
@@ -109,6 +109,7 @@ arguments = call_parser()
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
         global arguments
+        self.event_entered = False
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         
@@ -302,7 +303,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.buttons["cancel_button"].show()
                 
     def event(self, event):
-        print (type(event))
+        time.sleep(0.1)
         return True
 
 #    def resizeEvent(self, event):
