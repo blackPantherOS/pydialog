@@ -104,30 +104,58 @@ def call_parser():
 arguments = call_parser()
 return_keyword = "<PYDIALOG-RESULT:"
 
+
+
 # DO NOT REMOVE! IT IS A SOLUTION TO A PYQT5 BUG (SEGFAULT)
 if not arguments.antisegfault:
     import subprocess
     from os import linesep
     args = sys.argv[:]
     args.append("--antisegfault")
-    try:
-        result = subprocess.check_output(args).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        result = e.output.decode("utf-8")
-    except:
-        sys.exit(_("Undefined error"))
-    pos = result.find(return_keyword) + len(return_keyword)
-    if pos != -1:
-        pos2 = result[pos:].find(">")+pos
-        result2 = int(result[pos:pos2])
-        output = result[:pos-len(return_keyword)]+result[pos2+2:]
+    exit_result = 0
+
+    if arguments.progressbar:
+        import dbus, os, time
+        progname = "pydialog"
+        dbusname = "org.kde.kdialog"
+        dbusname += "-" + str(os.getpid())
+        print (dbusname + " /ProgressDialog")
+        o = "--progressbar"
+        i = args.index(o)
+        args[i] = "--forked" + args[i][2:]
+        args.append("--dbusname")
+        args.append(dbusname)
+        subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        bus = dbus.Bus()
+        for j in range(20):
+            try:
+                o = bus.get_object(dbusname, "/ProgressDialog")
+                break
+            except:
+                pass
+            time.sleep(0.1)
     else:
-        result2 = 0
-        output = result
-    output = output.rstrip(linesep)
-    if len(output) > 0:
-        print (output)
-    sys.exit(result2)
+        try:
+            result = subprocess.check_output(args).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            result = e.output.decode("utf-8")
+        except:
+            sys.exit(_("Undefined error"))
+        pos = result.find(return_keyword) + len(return_keyword)
+        if pos != -1:
+            pos2 = result[pos:].find(">")+pos
+            print("HIBA %r" % result[pos:pos2])
+            result2 = int(result[pos:pos2])
+            output = result[:pos-len(return_keyword)]+result[pos2+2:]
+        else:
+            result2 = 0
+            output = result
+        output = output.rstrip(linesep)
+        if len(output) > 0:
+            print (output)
+        exit_result = result2
+    sys.exit(exit_result)
+
 
 
 from PyQt5.QtWidgets import QPushButton
@@ -493,25 +521,3 @@ if __name__ == '__main__' and arguments.forkedprogressbar:
     app.exec_()
 
 
-if __name__ == '__main__' and arguments.progressbar:
-    import subprocess, dbus, os, time
-    progname = "pydialog"
-    dbusname = "org.kde.kdialog"
-    dbusname += "-" + str(os.getpid())
-    print (dbusname + " /ProgressDialog")
-    args = sys.argv[:]
-    o = "--progressbar"
-    i = args.index(o)
-    args[i] = "--forked" + args[i][2:]
-    args.append("--dbusname")
-    args.append(dbusname)
-    subprocess.Popen(args, stdout=sys.stderr)
-    bus = dbus.Bus()
-    for j in range(20):
-        try:
-            o = bus.get_object(dbusname, "/ProgressDialog")
-            break
-        except:
-            pass
-        time.sleep(0.1)
-    sys.exit(0)
