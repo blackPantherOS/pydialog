@@ -11,13 +11,9 @@
 import sys, time
 import gettext
 
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QDialog, QApplication
 
 from argparse import ArgumentParser
 
-import modules
-from modules import window1
 
 gettext.install("pydialog", "/usr/share/locale")
 
@@ -82,12 +78,14 @@ def call_parser():
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
+    parser.add_argument("--antisegfault", action='store_true')
 
     arguments = parser.parse_args()
 
     def argument_error(name="", error_type=_("Missing arguments")):
         for argument in arguments.__dict__:
-            exec("arguments."+argument+"=None")
+            if argument != "antisegfault":
+                exec("arguments."+argument+"=None")
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
@@ -104,17 +102,48 @@ def call_parser():
 
 
 arguments = call_parser()
+return_keyword = "<PYDIALOG-RESULT:"
+
+# DO NOT REMOVE! IT IS A SOLUTION TO A PYQT5 BUG (SEGFAULT)
+if not arguments.antisegfault:
+    import subprocess
+    from os import linesep
+    args = sys.argv[:]
+    args.append("--antisegfault")
+    try:
+        result = subprocess.check_output(args).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        result = e.output.decode("utf-8")
+    except:
+        sys.exit(_("Undefined error"))
+    pos = result.find(return_keyword) + len(return_keyword)
+    if pos != -1:
+        pos2 = result[pos:].find(">")+pos
+        result2 = int(result[pos:pos2])
+        output = result[:pos-len(return_keyword)]+result[pos2+2:]
+    else:
+        result2 = 0
+        output = result
+    output = output.rstrip(linesep)
+    print (output)
+    sys.exit(result2)
+
+
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QDialog, QApplication
+
+import modules
+from modules import window1
 
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
-        global arguments
+        global arguments, return_keyword
         self.event_entered = False
+        self.event2_entered = False
         super(MainWindow, self).__init__(parent)
-        self.setupUi(self)
-        
-        self.reject_value = 0
-        
+        self.setupUi(self)        
+
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
             "details_button":_("Details"), 
@@ -126,7 +155,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         }
         
         self.button_values = {}
-        
         self.create_elements()
     
 
@@ -134,10 +162,14 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.active_buttons = dict((e, False) for e in self.button_names)
         self.progressbar_cancelled = False
 
+
         self.hide_unused_elements()
         self.init_conf()
         self.create_buttons()
         self.set_button_labels()
+
+        noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
+        self.reject_value = noab - 1
 
         
     def hide_unused_elements(self):
@@ -246,9 +278,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         global arguments
         self.buttons = {}
         
-        noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
-        self.reject_value = noab - 1
-
         i = 0
         for button_id in self.button_ids:
             if self.active_buttons[button_id]:
@@ -268,20 +297,24 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             print(self.horizontalSlider.value())
         elif arguments.inputbox or arguments.password:
             print(self.lineEdit.text())
-        self.accept()
-        self.done(self.button_values["ok_button"])
+        print(return_keyword+str(self.button_values["ok_button"])+">")
+        self.done(0)
     
     def yes_button_clicked(self):
-        self.done(self.button_values["yes_button"])
+        print(return_keyword+str(self.button_values["yes_button"])+">")
+        self.done(0)
     
     def no_button_clicked(self):
-        self.done(self.button_values["no_button"])
+        print(return_keyword+str(self.button_values["no_button"])+">")
+        self.done(0)
     
     def continue_button_clicked(self):
-        self.done(self.button_values["continue_button"])
+        print(return_keyword+str(self.button_values["continue_button"])+">")
+        self.done(0)
     
     def reject(self):
-        self.done(self.reject_value)
+        print(return_keyword+str(self.reject_value)+">")
+        self.done(0)
 
     def enable_buttons (self, button_list):
         for button in button_list:
@@ -301,12 +334,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.horizontalLayout.addWidget(self.buttons["cancel_button"])
             self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
-                
-    def event(self, event):   # DO NOT REMOVE! This is against the segmentation faults!
-        if event.type() == 12:
-            time.sleep(0.1)
-        return True
-
+                        
 #    def resizeEvent(self, event):
 #        limit = 100
 #        if event.size().width() > limit and event.oldSize().width() < limit:
@@ -322,7 +350,6 @@ if __name__ == '__main__' and not (arguments.progressbar or arguments.forkedprog
     form = MainWindow()
     form.show()
     app.exec_()
-    sys.exit(form.result())
 
 
 if arguments.forkedprogressbar:
