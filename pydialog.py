@@ -144,7 +144,6 @@ if not arguments.antisegfault:
         pos = result.find(return_keyword) + len(return_keyword)
         if pos != -1:
             pos2 = result[pos:].find(">")+pos
-            print("HIBA %r" % result[pos:pos2])
             result2 = int(result[pos:pos2])
             output = result[:pos-len(return_keyword)]+result[pos2+2:]
         else:
