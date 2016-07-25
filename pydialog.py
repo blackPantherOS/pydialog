@@ -142,7 +142,7 @@ if not arguments.antisegfault:
         except:
             sys.exit(_("Undefined error"))
         pos = result.find(return_keyword) + len(return_keyword)
-        if pos != -1:
+        if pos != len(return_keyword)-1:
             pos2 = result[pos:].find(">")+pos
             result2 = int(result[pos:pos2])
             output = result[:pos-len(return_keyword)]+result[pos2+2:]
