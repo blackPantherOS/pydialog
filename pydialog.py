@@ -125,7 +125,8 @@ if not arguments.antisegfault:
         result2 = 0
         output = result
     output = output.rstrip(linesep)
-    print (output)
+    if len(output) > 0:
+        print (output)
     sys.exit(result2)
 
 
