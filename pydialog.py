@@ -105,7 +105,6 @@ arguments = call_parser()
 return_keyword = "<PYDIALOG-RESULT:"
 
 
-
 # DO NOT REMOVE! IT IS A SOLUTION TO A PYQT5 BUG (SEGFAULT)
 if not arguments.antisegfault:
     import subprocess
@@ -170,7 +169,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.event_entered = False
         self.event2_entered = False
         super(MainWindow, self).__init__(parent)
-        self.setupUi(self)        
+        self.setupUi(self)
+        self.word_wrap()
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -184,6 +184,14 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
         self.button_values = {}
         self.create_elements()
+        
+
+    def word_wrap(self):
+        if self.label.sizeHint().width() > 600:
+            self.label.setWordWrap(True)
+            self.label.setMinimumWidth(400)
+            self.label.setMaximumWidth(600)
+            self.label.setMinimumHeight(200)
     
 
     def create_elements(self):
