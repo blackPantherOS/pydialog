@@ -158,7 +158,7 @@ if not arguments.antisegfault:
 
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QDialog, QApplication
-
+from PyQt5.QtWidgets import QSizePolicy
 import modules
 from modules import window1
 
@@ -170,7 +170,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.event2_entered = False
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        self.word_wrap()
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -186,18 +185,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.create_elements()
         
 
-    def word_wrap(self):
-        if self.label.sizeHint().width() > 600:
-            self.label.setWordWrap(True)
-            self.label.setMinimumWidth(400)
-            self.label.setMaximumWidth(600)
-            self.label.setMinimumHeight(200)
-    
-
     def create_elements(self):
         self.active_buttons = dict((e, False) for e in self.button_names)
         self.progressbar_cancelled = False
-
 
         self.hide_unused_elements()
         self.init_conf()
@@ -252,7 +242,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if arguments.sorry:
                 self.label.setText(arguments.sorry)
             elif arguments.error:
-                self.label.setText(arguments.error[0])
+                self.label.setText(arguments.error)
             else:
                 self.label.setText(arguments.msgbox)
 
