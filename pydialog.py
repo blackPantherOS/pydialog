@@ -170,6 +170,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.event2_entered = False
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        self.label.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
+        self.label.setWordWrap(True)
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
