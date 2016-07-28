@@ -172,7 +172,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
         
         self.label.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
-        self.label.setWordWrap(True)
+        self.word_wrap()
+#        self.label.setWordWrap(True)
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
         self.button_names = {
@@ -186,7 +187,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
         self.button_values = {}
         self.create_elements()
-        
+
+    def word_wrap(self):
+        if self.label.sizeHint().width() > 600:
+            self.label.setWordWrap(True)
+            self.label.setMinimumWidth(600)
 
     def create_elements(self):
         self.active_buttons = dict((e, False) for e in self.button_names)
