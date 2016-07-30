@@ -59,8 +59,8 @@ def call_parser():
 
      # TODO: Waiting for GUI
 
-    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"), nargs='+')
     parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"), nargs='+')
+    parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"), nargs='+')
     parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"), nargs='+')
     parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
     parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"), nargs='*')
@@ -89,7 +89,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["combobox", "textinputbox", "passivepopup", "menu", "checklist", 
+    unfinished = ["combobox", "textinputbox", "passivepopup", "menu", 
         "radiolist", "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
         "dontagain", "calendar", "attach", "textbox"]
@@ -159,6 +159,7 @@ if not arguments.antisegfault:
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.QtWidgets import QSizePolicy
+
 import modules
 from modules import window1
 
@@ -173,15 +174,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
         self.label.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
         self.word_wrap()
-#        self.label.setWordWrap(True)
 
-        self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "cancel_button"]
+        self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "save_button", "cancel_button"]
         self.button_names = {
             "details_button":_("Details"), 
             "ok_button":_("Ok"), 
             "yes_button":_("Yes"), 
             "no_button":_("No"), 
             "continue_button":_("Continue"),
+            "save_button":_("Save"),
             "cancel_button":_("Cancel")
         }
         
@@ -219,7 +220,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.lineEdit.hide()
         if not arguments.combobox and not arguments.password:
             self.label_2.hide()
-
 
     def init_conf(self):
         """ Initial configurations (buttons and labels) """
@@ -295,6 +295,31 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label.setText(arguments.password[0])
             self.label_2.setText(_("Password:"))
 
+        elif arguments.checklist:
+            from PyQt5.QtWidgets import QVBoxLayout, QWidget, QScrollArea
+            self.scrollWidget = QWidget()
+            self.scrollLayout = QVBoxLayout()
+            self.add_checkboxes()
+            self.scrollWidget.setLayout(self.scrollLayout)
+            self.scrollArea = QScrollArea()
+            self.scrollArea.setWidget(self.scrollWidget)
+            self.verticalLayout_2.addWidget(self.scrollArea)
+            self.label.setText(arguments.checklist[0])
+            self.enable_buttons(["ok_button", "cancel_button"])
+
+
+    def add_checkboxes(self):
+        from PyQt5.QtWidgets import QCheckBox
+        self.checkboxes = []
+        i = 1
+        while i < len(arguments.checklist):
+            checkbox = QCheckBox(arguments.checklist[i+1])
+            if arguments.checklist[i+2].lower() == "true":
+                checkbox.setCheckState(2)
+            self.checkboxes.append({"box":checkbox, "result":arguments.checklist[i]})
+            self.scrollLayout.addWidget(checkbox)
+            i += 3
+
 
     def set_button_labels(self):
         """Set the button labels"""
@@ -307,6 +332,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.buttons["cancel_button"].setText(arguments.cancellabel)
         if arguments.continuelabel and self.active_buttons["continue_button"]:
             self.buttons["continue_button"].setText(arguments.continuelabel)
+
 
     def create_buttons(self):
         global arguments
@@ -326,11 +352,20 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                     exec("self.buttons[button_id].clicked.connect(self."+button_id+"_clicked)")
                     i += 1
     
+    
+    def print_checkboxes(self):
+        for e in self.checkboxes:
+            if e["box"].isChecked():
+                print("%r " % e["result"], end="")
+    
+
     def ok_button_clicked(self):
         if arguments.slider:
             print(self.horizontalSlider.value())
         elif arguments.inputbox or arguments.password:
             print(self.lineEdit.text())
+        elif arguments.checklist:
+            self.print_checkboxes()
         print(return_keyword+str(self.button_values["ok_button"])+">")
         self.done(0)
     
@@ -344,6 +379,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     
     def continue_button_clicked(self):
         print(return_keyword+str(self.button_values["continue_button"])+">")
+        self.done(0)
+
+    def save_button_clicked(self):
+        print(return_keyword+str(self.button_values["save_button"])+">")
         self.done(0)
     
     def reject(self):
