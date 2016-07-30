@@ -33,6 +33,9 @@ def call_parser():
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), nargs="+", metavar=_("<text> [totalsteps]"))
     parser.add_argument("--forkedprogressbar", help=_(""), nargs="+", metavar=_("<text> [totalsteps]"))
     parser.add_argument("--dbusname", help=_(""), nargs="+", metavar=_("<text>"))
+    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
+    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
+    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"), nargs='+')
 
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
@@ -48,8 +51,6 @@ def call_parser():
 
     # TODO: Untested options below
     parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
-    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
-    parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
 
     # TODO: Unfinished options below
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
@@ -59,7 +60,6 @@ def call_parser():
 
      # TODO: Waiting for GUI
 
-    parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"), nargs='+')
     parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"), nargs='+')
     parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"), nargs='+')
     parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
@@ -90,7 +90,7 @@ def call_parser():
 
 
     unfinished = ["combobox", "textinputbox", "passivepopup", "menu", 
-        "radiolist", "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
+        "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
         "dontagain", "calendar", "attach", "textbox"]
     
@@ -221,6 +221,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if not arguments.combobox and not arguments.password:
             self.label_2.hide()
 
+
     def init_conf(self):
         """ Initial configurations (buttons and labels) """
         global arguments
@@ -295,16 +296,22 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label.setText(arguments.password[0])
             self.label_2.setText(_("Password:"))
 
-        elif arguments.checklist:
+        elif arguments.checklist or arguments.radiolist:
             from PyQt5.QtWidgets import QVBoxLayout, QWidget, QScrollArea
             self.scrollWidget = QWidget()
             self.scrollLayout = QVBoxLayout()
-            self.add_checkboxes()
+            if arguments.checklist:
+                self.add_checkboxes()
+            else:
+                self.add_radiobuttons()
             self.scrollWidget.setLayout(self.scrollLayout)
             self.scrollArea = QScrollArea()
             self.scrollArea.setWidget(self.scrollWidget)
             self.verticalLayout_2.addWidget(self.scrollArea)
-            self.label.setText(arguments.checklist[0])
+            if arguments.checklist:
+                self.label.setText(arguments.checklist[0])
+            else:
+                self.label.setText(arguments.radiolist[0])
             self.enable_buttons(["ok_button", "cancel_button"])
 
 
@@ -318,6 +325,20 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 checkbox.setCheckState(2)
             self.checkboxes.append({"box":checkbox, "result":arguments.checklist[i]})
             self.scrollLayout.addWidget(checkbox)
+            i += 3
+            
+    def add_radiobuttons(self):
+        from PyQt5.QtWidgets import QRadioButton, QButtonGroup
+        self.buttonGroup = QButtonGroup()
+        self.buttongroup_results = {}
+        i = 1
+        while i < len(arguments.radiolist):
+            radiobutton = QRadioButton(arguments.radiolist[i+1])
+            self.buttongroup_results[radiobutton] = arguments.radiolist[i]
+            if arguments.radiolist[i+2].lower() == "true":
+                radiobutton.setChecked(True)
+            self.scrollLayout.addWidget(radiobutton)
+            self.buttonGroup.addButton(radiobutton)
             i += 3
 
 
@@ -357,6 +378,10 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         for e in self.checkboxes:
             if e["box"].isChecked():
                 print("%r " % e["result"], end="")
+                
+    def get_checked_radiobutton(self):
+        radiobutton_name = self.buttonGroup.checkedButton()
+        print("%r" % self.buttongroup_results[radiobutton_name])
     
 
     def ok_button_clicked(self):
@@ -366,6 +391,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             print(self.lineEdit.text())
         elif arguments.checklist:
             self.print_checkboxes()
+        elif arguments.radiolist:
+            self.get_checked_radiobutton()
         print(return_keyword+str(self.button_values["ok_button"])+">")
         self.done(0)
     
