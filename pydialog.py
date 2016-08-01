@@ -173,7 +173,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.setupUi(self)
         
         self.label.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
-        self.word_wrap()
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "save_button", "cancel_button"]
         self.button_names = {
@@ -188,6 +187,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
         self.button_values = {}
         self.create_elements()
+        self.word_wrap()
 
     def word_wrap(self):
         if self.label.sizeHint().width() > 600:
@@ -300,6 +300,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             from PyQt5.QtWidgets import QVBoxLayout, QWidget, QScrollArea
             self.scrollWidget = QWidget()
             self.scrollLayout = QVBoxLayout()
+
             if arguments.checklist:
                 self.add_checkboxes()
             else:
@@ -451,14 +452,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.progressbar_cancelled = False
         self.buttons["cancel_button"].show()
                         
-#    def resizeEvent(self, event):
-#        limit = 100
-#        if event.size().width() > limit and event.oldSize().width() < limit:
-#            self.label.setWordWrap(True)
-#        elif event.size().width() < limit and event.oldSize().width() > limit:
-#            self.label.setWordWrap(False)
-        
-
     
 if __name__ == '__main__' and not (arguments.progressbar or arguments.forkedprogressbar):
     app = QApplication(sys.argv) # NOTE: Be careful, the QApplication can remove elements from the sys.argv! Call the parse_args before it if you want to use them.
