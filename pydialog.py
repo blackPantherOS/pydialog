@@ -307,6 +307,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 self.add_radiobuttons()
             self.scrollWidget.setLayout(self.scrollLayout)
             self.scrollArea = QScrollArea()
+            self.set_scrollarea_height()
             self.scrollArea.setWidget(self.scrollWidget)
             self.verticalLayout_2.addWidget(self.scrollArea)
             if arguments.checklist:
@@ -316,6 +317,23 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             else:
                 self.label.setText(arguments.menu[0])
             self.enable_buttons(["ok_button", "cancel_button"])
+
+
+    def set_scrollarea_height(self):
+        if arguments.checklist:
+            elements = (len(arguments.checklist)-1) / 3
+        elif arguments.radiolist:
+            elements = (len(arguments.radiolist)-1) / 3
+        elif arguments.menu:
+            elements = (len(arguments.menu)-1) / 2
+        if elements < 3:
+            pass
+        elif elements == 3:
+            self.scrollArea.setMinimumHeight(90)
+        elif elements == 4:
+            self.scrollArea.setMinimumHeight(115)
+        else:
+            self.scrollArea.setMinimumHeight(140)
 
 
     def add_checkboxes(self):
