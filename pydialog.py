@@ -391,12 +391,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def print_checkboxes(self):
         for e in self.checkboxes:
             if e["box"].isChecked():
-                print("%r " % e["result"], end="")
+                print('"%s" ' % e["result"], end="")
                 
     def get_checked_radiobutton(self):
         radiobutton_name = self.buttonGroup.checkedButton()
         if arguments.radiolist:
-            print("%r" % self.buttongroup_results[radiobutton_name])
+            print('"%s"' % self.buttongroup_results[radiobutton_name])
         else:
             print(self.buttongroup_results[radiobutton_name])
     
