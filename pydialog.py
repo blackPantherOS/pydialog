@@ -314,6 +314,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.scrollArea = QScrollArea()
             self.scrollArea.setHorizontalScrollBar(self.hscrollbar)
             self.scrollArea.setVerticalScrollBar(self.vscrollbar)
+            self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.set_scrollarea_height()
             self.scrollArea.setWidget(self.scrollWidget)
             self.scrollAreaLayout.addWidget(self.scrollArea)
@@ -330,7 +332,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
 
     def set_scrollarea_height(self):
-        extra_height = 20
         if arguments.checklist:
             elements = (len(arguments.checklist)-1) / 3
         elif arguments.radiolist:
@@ -340,11 +341,11 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if elements < 3:
             pass
         elif elements == 3:
-            self.scrollArea.setMinimumHeight(90 + extra_height)
+            self.scrollArea.setMinimumHeight(90)
         elif elements == 4:
-            self.scrollArea.setMinimumHeight(115 + extra_height)
+            self.scrollArea.setMinimumHeight(115)
         else:
-            self.scrollArea.setMinimumHeight(140 + extra_height)
+            self.scrollArea.setMinimumHeight(140)
         print(self.scrollArea.viewport().height())
 
 
