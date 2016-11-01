@@ -192,6 +192,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def word_wrap(self):
         if self.label.sizeHint().width() > 600:
             self.label.setWordWrap(True)
+            self.label.setScaledContents(True)
             self.label.setMinimumWidth(600)
 
     def create_elements(self):
@@ -297,19 +298,28 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label_2.setText(_("Password:"))
 
         elif arguments.checklist or arguments.radiolist or arguments.menu:
-            from PyQt5.QtWidgets import QVBoxLayout, QWidget, QScrollArea
+            from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QScrollBar
+            from PyQt5.QtCore import Qt
             self.scrollWidget = QWidget()
             self.scrollLayout = QVBoxLayout()
+            self.scrollAreaLayout = QHBoxLayout()
 
             if arguments.checklist:
                 self.add_checkboxes()
             else:
                 self.add_radiobuttons()
             self.scrollWidget.setLayout(self.scrollLayout)
+            self.hscrollbar = QScrollBar()
+            self.vscrollbar = QScrollBar()
             self.scrollArea = QScrollArea()
+            self.scrollArea.setHorizontalScrollBar(self.hscrollbar)
+            self.scrollArea.setVerticalScrollBar(self.vscrollbar)
             self.set_scrollarea_height()
             self.scrollArea.setWidget(self.scrollWidget)
-            self.verticalLayout_2.addWidget(self.scrollArea)
+            self.scrollAreaLayout.addWidget(self.scrollArea)
+            self.scrollAreaLayout.addWidget(self.vscrollbar)
+            self.verticalLayout_2.addLayout(self.scrollAreaLayout)
+            self.verticalLayout_2.addWidget(self.hscrollbar)
             if arguments.checklist:
                 self.label.setText(arguments.checklist[0])
             elif arguments.radiolist:
@@ -320,6 +330,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
 
     def set_scrollarea_height(self):
+        extra_height = 20
         if arguments.checklist:
             elements = (len(arguments.checklist)-1) / 3
         elif arguments.radiolist:
@@ -329,11 +340,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if elements < 3:
             pass
         elif elements == 3:
-            self.scrollArea.setMinimumHeight(90)
+            self.scrollArea.setMinimumHeight(90 + extra_height)
         elif elements == 4:
-            self.scrollArea.setMinimumHeight(115)
+            self.scrollArea.setMinimumHeight(115 + extra_height)
         else:
-            self.scrollArea.setMinimumHeight(140)
+            self.scrollArea.setMinimumHeight(140 + extra_height)
+        print(self.scrollArea.viewport().height())
 
 
     def add_checkboxes(self):
