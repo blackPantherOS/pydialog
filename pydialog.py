@@ -78,6 +78,8 @@ def call_parser():
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
+    parser.add_argument("--stayontop", help=_("The window stays on top"), action='store_true')
+
     parser.add_argument("--antisegfault", action='store_true')
 
     arguments = parser.parse_args()
@@ -172,6 +174,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         
+        if arguments.stayontop:
+            from PyQt5.QtCore import Qt
+            self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.label.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
 
         self.button_ids = ["details_button", "ok_button", "yes_button", "no_button", "continue_button", "save_button", "cancel_button"]
