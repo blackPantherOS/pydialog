@@ -145,15 +145,18 @@ if not arguments.antisegfault:
         pos = result.find(return_keyword) + len(return_keyword)
         if pos != len(return_keyword)-1:
             pos2 = result[pos:].find(">")+pos
-            result2 = int(result[pos:pos2])
+            exit_result = int(result[pos:pos2])
             output = result[:pos-len(return_keyword)]+result[pos2+2:]
         else:
-            result2 = 0
+            exit_result = 0
             output = result
         output = output.rstrip(linesep)
         if len(output) > 0:
             print (output)
-        exit_result = result2
+        if arguments.warningcontinuecancel and exit_result == 1:
+            exit_result = 2
+        elif (arguments.detailederror or arguments.detailedsorry) and exit_result == 0:
+            exit_result = 2
     sys.exit(exit_result)
 
 
