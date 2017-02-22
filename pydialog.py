@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+#-*- coding:utf-8 -*-
 
 #*********************************************************************************************************
 #*   __     __               __     ______                __   __                      _______ _______   *
@@ -6,7 +7,9 @@
 #*  |  _  ||  ||  _  ||  __||    < |    __/|  _  ||     ||   _|     ||  -__||   _|    |   -   |__     |  *
 #*  |_____||__||___._||____||__|__||___|   |___._||__|__||____|__|__||_____||__|      |_______|_______|  *
 #* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
-#*************************************************************************************(c)2002-2016********
+#*                                                                                                       *
+#*          The maintainer of the Pydialog: Miklos Horvath * hmiki[]blackpantheros.eu                    *
+#*************************************************************************************(c)2002-2017********
 
 import sys, time
 import gettext
@@ -155,6 +158,8 @@ if not arguments.antisegfault:
             print (output)
         if arguments.warningcontinuecancel and exit_result == 1:
             exit_result = 2
+        elif arguments.slider:
+            exit_result ^= 1
         elif (arguments.detailederror or arguments.detailedsorry) and exit_result == 0:
             exit_result = 2
     sys.exit(exit_result)

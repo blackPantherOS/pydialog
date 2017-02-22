@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+#-*- coding:utf-8 -*-
+
+#*********************************************************************************************************
+#*   __     __               __     ______                __   __                      _______ _______   *
+#*  |  |--.|  |.---.-..----.|  |--.|   __ \.---.-..-----.|  |_|  |--..-----..----.    |       |     __|  *
+#*  |  _  ||  ||  _  ||  __||    < |    __/|  _  ||     ||   _|     ||  -__||   _|    |   -   |__     |  *
+#*  |_____||__||___._||____||__|__||___|   |___._||__|__||____|__|__||_____||__|      |_______|_______|  *
+#* http://www.blackpantheros.eu | http://www.blackpanther.hu - kbarcza[]blackpanther.hu * Charles Barcza *
+#*                                                                                                       *
+#*          The maintainer of the Pydialog: Miklos Horvath * hmiki[]blackpantheros.eu                    *
+#*************************************************************************************(c)2002-2017********
 
 import unittest, subprocess
 
@@ -15,48 +26,85 @@ class TestStringMethods(unittest.TestCase):
     def check_values(self, args):
         values = []
         for cmd in ["./pydialog.py", "kdialog"]:
-            value = subprocess.run([cmd]+args)
+            value = subprocess.run([cmd]+args, stdout=subprocess.PIPE)
             values.append(value)
+            print (value.stdout)
         self.assertEqual(values[0].returncode, values[1].returncode)
         self.assertEqual(values[0].stdout, values[1].stdout)
 
+    def check_different_values(self, option, args, returncode=True):
+        values = []
+        i = 0
+        for cmd in ["./pydialog.py", "kdialog"]:
+            value = subprocess.run([cmd]+[option]+args[i], stdout=subprocess.PIPE)
+            values.append(value)
+            print (value.stdout)
+            i += 1
+        if returncode:
+            self.assertNotEqual(values[0].returncode, values[1].returncode)
+        else:
+            self.assertNotEqual(values[0].stdout, values[1].stdout)
 
+#    @unittest.skip("")
     def test_01_msgbox_return(self):
-        self.check_values(['--msgbox','Please press the ok button!'])
+        self.check_values(['--msgbox','Please press the OK button!'])
         
+#    @unittest.skip("")
     def test_02_yesno_return(self):
         self.check_values(['--yesno', 'Please press the YES button!'])
         self.check_values(['--yesno', 'Please press the NO button!'])
+        self.check_different_values('--yesno', [['Please press the YES button!'], ['Please press the NO button!']])
         
+#    @unittest.skip("")
     def test_03_yesnocancel_return(self):
         self.check_values(['--yesnocancel', 'Please press the YES button!'])
         self.check_values(['--yesnocancel', 'Please press the NO button!'])
         self.check_values(['--yesnocancel', 'Please press the CANCEL button!'])
 
+#    @unittest.skip("")
     def test_04_sorry_return(self):
-        self.check_values(['--sorry','Sorry, press the ok button!'])
+        self.check_values(['--sorry','Sorry, press the OK button!'])
         
+#    @unittest.skip("")
     def test_05_error_return(self):
-        self.check_values(['--error','Error: press the ok button!'])
+        self.check_values(['--error','Error: press the OK button!'])
         
+#    @unittest.skip("")
     def test_06_warningyesno_return(self):
         self.check_values(['--warningyesno', 'Please press the YES button!'])
         self.check_values(['--warningyesno', 'Please press the NO button!'])
         
+#    @unittest.skip("")
     def test_07_warningyesnocancel_return(self):
         self.check_values(['--warningyesnocancel', 'Please press the YES button!'])
         self.check_values(['--warningyesnocancel', 'Please press the NO button!'])
         self.check_values(['--warningyesnocancel', 'Please press the CANCEL button!'])
 
+#    @unittest.skip("")
     def test_08_warningcontinuecancel_return(self):
         self.check_values(['--warningcontinuecancel', 'Please press the CONTINUE button!'])
         self.check_values(['--warningcontinuecancel', 'Please press the CANCEL button!'])
 
+#    @unittest.skip("")
     def test_09_detailedsorry_return(self):
-        self.check_values(['--detailedsorry','Sorry, press the ok button!', 'These lines are the details. Please press OK'])
+        self.check_values(['--detailedsorry','Sorry, press the OK button!', 'These lines are the details. Please press OK'])
 
+#    @unittest.skip("")
     def test_10_detailedsorry_return(self):
-        self.check_values(['--detailederror','Error press the ok button!', 'These lines are the details. Please press OK'])
+        self.check_values(['--detailederror','Error press the OK button!', 'These lines are the details. Please press OK'])
+
+#    @unittest.skip("")
+    def test_11_slider_return(self):
+        self.check_values(['--slider','Please choose the minimum value!', '1', '13', '3'])
+        self.check_values(['--slider','Please choose the maximum value!', '1', '13', '3'])
+        self.check_values(['--slider','Please choose the median value!', '1', '13', '3'])
+        self.check_values(['--slider','Please press the CANCEL button!', '1', '13', '3'])
+        self.check_different_values('--slider',[['Please choose the minimum value!', '1', '13', '3'], ['Please choose the maximum value!', '1', '13', '3']], False)
+
+    @unittest.skip("")
+    def test_12_inputbox_return(self):
+        self.check_values(['--inputbox','Press the OK button!', 'STG'])
+        self.check_values(['--inputbox','Press the CANCEL button!'])
 
 
 if __name__ == '__main__':
@@ -72,9 +120,10 @@ if __name__ == '__main__':
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
     parser.add_argument("--warningyesnocancel", metavar=_("<text>"), help=_("Warning message box with yes/no/cancel buttons"))
     parser.add_argument("--warningcontinuecancel", metavar=_("<text>"), help=_("Warning message box with continue/cancel buttons"))
-
     parser.add_argument("--detailedsorry", help=_("Sorry message box with expendable Details field"), nargs=2, metavar=_("<text> <details>")) 
     parser.add_argument("--detailederror", metavar=_("<text> <details>"), help=_("'Error' message box with expandable Details field"), nargs=2)
+    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
+    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
 
     parser.add_argument("--title", help=_("Dialog title"), metavar=_("<text>"))
 
@@ -87,7 +136,6 @@ if __name__ == '__main__':
     parser.add_argument("--progressbar", help=_("Progress bar dialog, returns a D-Bus reference for communication"), nargs="+", metavar=_("<text> [totalsteps]"))
     parser.add_argument("--forkedprogressbar", help=_(""), nargs="+", metavar=_("<text> [totalsteps]"))
     parser.add_argument("--dbusname", help=_(""), nargs="+", metavar=_("<text>"))
-    parser.add_argument("--inputbox", metavar=_("<text> <init>"), help=_("Input Box dialog"), nargs='+')
     parser.add_argument("--password", metavar=_("<text>"), help=_("Password dialog"), nargs=1)
     parser.add_argument("--checklist", metavar=_("<text> [tag item status] ..."), help=_("Check List dialog"), nargs='+')
     parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"), nargs='+')
@@ -96,7 +144,6 @@ if __name__ == '__main__':
     # TODO: icons needed
 
     # TODO: Untested options below
-    parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
 
     # TODO: Unfinished options below
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
