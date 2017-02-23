@@ -154,7 +154,7 @@ if not arguments.antisegfault:
             exit_result = 0
             output = result
         output = output.rstrip(linesep)
-        if len(output) > 0:
+        if len(output) > 0 or arguments.radiolist:
             print (output)
         if arguments.warningcontinuecancel and exit_result == 1:
             exit_result = 2
@@ -359,7 +359,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.scrollArea.setMinimumHeight(115)
         else:
             self.scrollArea.setMinimumHeight(140)
-        print(self.scrollArea.viewport().height())
+#        print(self.scrollArea.viewport().height())
 
 
     def add_checkboxes(self):

@@ -45,55 +45,55 @@ class TestStringMethods(unittest.TestCase):
         else:
             self.assertNotEqual(values[0].stdout, values[1].stdout)
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_01_msgbox_return(self):
         self.check_values(['--msgbox','Please press the OK button!'])
         
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_02_yesno_return(self):
         self.check_values(['--yesno', 'Please press the YES button!'])
         self.check_values(['--yesno', 'Please press the NO button!'])
         self.check_different_values('--yesno', [['Please press the YES button!'], ['Please press the NO button!']])
         
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_03_yesnocancel_return(self):
         self.check_values(['--yesnocancel', 'Please press the YES button!'])
         self.check_values(['--yesnocancel', 'Please press the NO button!'])
         self.check_values(['--yesnocancel', 'Please press the CANCEL button!'])
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_04_sorry_return(self):
         self.check_values(['--sorry','Sorry, press the OK button!'])
         
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_05_error_return(self):
         self.check_values(['--error','Error: press the OK button!'])
         
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_06_warningyesno_return(self):
         self.check_values(['--warningyesno', 'Please press the YES button!'])
         self.check_values(['--warningyesno', 'Please press the NO button!'])
         
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_07_warningyesnocancel_return(self):
         self.check_values(['--warningyesnocancel', 'Please press the YES button!'])
         self.check_values(['--warningyesnocancel', 'Please press the NO button!'])
         self.check_values(['--warningyesnocancel', 'Please press the CANCEL button!'])
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_08_warningcontinuecancel_return(self):
         self.check_values(['--warningcontinuecancel', 'Please press the CONTINUE button!'])
         self.check_values(['--warningcontinuecancel', 'Please press the CANCEL button!'])
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_09_detailedsorry_return(self):
         self.check_values(['--detailedsorry','Sorry, press the OK button!', 'These lines are the details. Please press OK'])
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_10_detailedsorry_return(self):
         self.check_values(['--detailederror','Error press the OK button!', 'These lines are the details. Please press OK'])
 
-#    @unittest.skip("")
+    @unittest.skip("")
     def test_11_slider_return(self):
         self.check_values(['--slider','Please choose the minimum value!', '1', '13', '3'])
         self.check_values(['--slider','Please choose the maximum value!', '1', '13', '3'])
@@ -106,7 +106,9 @@ class TestStringMethods(unittest.TestCase):
         self.check_values(['--inputbox','Press the OK button!', 'STG'])
         self.check_values(['--inputbox','Press the CANCEL button!'])
 
-
+    def test_13_radiolist_return(self):
+        self.check_values(['--radiolist','Possible Managing System Partitions with..', 'kialasztottvalami' ,'TEXT_TEXT_TEXT', 'false'])
+        
 if __name__ == '__main__':
     unittest.main()
 
