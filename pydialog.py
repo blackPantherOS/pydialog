@@ -81,6 +81,7 @@ def call_parser():
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
+    parser.add_argument("--tab", metavar=_("<primary tab name> <secondary tab name> ..."), help=_("Open a new tab"), nargs='+')
     parser.add_argument("--stayontop", help=_("The window stays on top"), action='store_true')
 
     parser.add_argument("--antisegfault", action='store_true')
@@ -119,7 +120,7 @@ if not arguments.antisegfault:
     exit_result = 0
 
     if arguments.progressbar:
-        import dbus, os, time
+        import dbus, os
         progname = "pydialog"
         dbusname = "org.kde.kdialog"
         dbusname += "-" + str(os.getpid())
@@ -166,11 +167,8 @@ if not arguments.antisegfault:
 
 
 
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QDialog, QApplication
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QPushButton, QDialog, QApplication, QSizePolicy
 
-import modules
 from modules import window1
 
 
@@ -311,30 +309,38 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label_2.setText(_("Password:"))
 
         elif arguments.checklist or arguments.radiolist or arguments.menu:
-            from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QScrollBar
-            from PyQt5.QtCore import Qt
-            self.scrollWidget = QWidget()
-            self.scrollLayout = QVBoxLayout()
-            self.scrollAreaLayout = QHBoxLayout()
-
             if arguments.checklist:
-                self.add_checkboxes()
+                scrollLayout, self.checkboxes = self.add_checkboxes()
             else:
-                self.add_radiobuttons()
-            self.scrollWidget.setLayout(self.scrollLayout)
-            self.hscrollbar = QScrollBar()
-            self.vscrollbar = QScrollBar()
-            self.scrollArea = QScrollArea()
-            self.scrollArea.setHorizontalScrollBar(self.hscrollbar)
-            self.scrollArea.setVerticalScrollBar(self.vscrollbar)
-            self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            self.set_scrollarea_height()
-            self.scrollArea.setWidget(self.scrollWidget)
-            self.scrollAreaLayout.addWidget(self.scrollArea)
-            self.scrollAreaLayout.addWidget(self.vscrollbar)
-            self.verticalLayout_2.addLayout(self.scrollAreaLayout)
-            self.verticalLayout_2.addWidget(self.hscrollbar)
+                scrollLayout, self.buttonGroup, self.buttongroup_results = self.add_radiobuttons()
+            
+            scrollAreaLayout, hscrollbar = self.create_scrollarea(scrollLayout)
+            
+            if arguments.tab:
+                from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget
+                
+                if arguments.checklist:
+                    scrollLayout2, self.checkboxes2 = self.add_checkboxes(True)
+                else:
+                    scrollLayout2, self.buttonGroup2, self.buttongroup_results2 = self.add_radiobuttons(True)
+                        
+                scrollAreaLayout2, hscrollbar2 = self.create_scrollarea(scrollLayout2)                
+                
+                tab1 = QWidget()
+                tab2 = QWidget()
+                layout = QVBoxLayout(tab1)
+                layout2 = QVBoxLayout(tab2)
+                layout.addLayout(scrollAreaLayout)
+                layout2.addLayout(scrollAreaLayout2)
+                layout.addWidget(hscrollbar)
+                layout2.addWidget(hscrollbar2)
+                self.tabwidget = QTabWidget(self)
+                self.tabwidget.addTab(tab1, arguments.tab[0])
+                self.tabwidget.addTab(tab2, arguments.tab[1])
+                self.verticalLayout_2.addWidget(self.tabwidget)
+            else:
+                self.verticalLayout_2.addLayout(scrollAreaLayout)
+                self.verticalLayout_2.addWidget(hscrollbar)
             if arguments.checklist:
                 self.label.setText(arguments.checklist[0])
             elif arguments.radiolist:
@@ -342,9 +348,29 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             else:
                 self.label.setText(arguments.menu[0])
             self.enable_buttons(["ok_button", "cancel_button"])
+            
+    def create_scrollarea(self, scrollLayout):
+            from PyQt5.QtWidgets import QHBoxLayout, QWidget, QScrollArea, QScrollBar
+            from PyQt5.QtCore import Qt
 
+            scrollWidget = QWidget()
+            scrollAreaLayout = QHBoxLayout()                
+            scrollWidget.setLayout(scrollLayout)
+            hscrollbar = QScrollBar()
+            vscrollbar = QScrollBar()
+            scrollArea = QScrollArea()
+            scrollArea.setHorizontalScrollBar(hscrollbar)
+            scrollArea.setVerticalScrollBar(vscrollbar)
+            scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.set_scrollarea_height(scrollArea)
+            scrollArea.setWidget(scrollWidget)
+            scrollAreaLayout.addWidget(scrollArea)
+            scrollAreaLayout.addWidget(vscrollbar)
+            return scrollAreaLayout, hscrollbar
+            
 
-    def set_scrollarea_height(self):
+    def set_scrollarea_height(self, scrollarea):
         if arguments.checklist:
             elements = (len(arguments.checklist)-1) / 3
         elif arguments.radiolist:
@@ -354,51 +380,62 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         if elements < 3:
             pass
         elif elements == 3:
-            self.scrollArea.setMinimumHeight(90)
+            scrollarea.setMinimumHeight(90)
         elif elements == 4:
-            self.scrollArea.setMinimumHeight(115)
+            scrollarea.setMinimumHeight(115)
         else:
-            self.scrollArea.setMinimumHeight(140)
-#        print(self.scrollArea.viewport().height())
+            scrollarea.setMinimumHeight(140)
 
-
-    def add_checkboxes(self):
-        from PyQt5.QtWidgets import QCheckBox
-        self.checkboxes = []
-        i = 1
-        while i < len(arguments.checklist):
-            checkbox = QCheckBox(arguments.checklist[i+1])
-            if arguments.checklist[i+2].lower() == "true":
+    def add_checkboxes(self, tab=False):
+        from PyQt5.QtWidgets import QCheckBox, QVBoxLayout
+        scrollLayout = QVBoxLayout()
+        checkboxes = []
+        if tab:
+            i = 2
+            name = "tab"
+        else:
+            i = 1
+            name = "checklist"
+        l = len(arguments.__dict__[name])
+        while i < l:
+            checkbox = QCheckBox(arguments.__dict__[name][i+1])
+            if arguments.__dict__[name][i+2].lower() in ["true", "on"]:
                 checkbox.setCheckState(2)
-            self.checkboxes.append({"box":checkbox, "result":arguments.checklist[i]})
-            self.scrollLayout.addWidget(checkbox)
+            checkboxes.append({"box":checkbox, "result":arguments.__dict__[name][i]})
+            scrollLayout.addWidget(checkbox)
             i += 3
+        return scrollLayout, checkboxes
             
-    def add_radiobuttons(self):
-        from PyQt5.QtWidgets import QRadioButton, QButtonGroup
-        self.buttonGroup = QButtonGroup()
-        self.buttongroup_results = {}
-        if arguments.radiolist:
-            arglen = len(arguments.radiolist)
-        else:
-            arglen = len(arguments.menu)
+    def add_radiobuttons(self, tab=False):
+        from PyQt5.QtWidgets import QRadioButton, QButtonGroup, QVBoxLayout
+        scrollLayout = QVBoxLayout()
+        buttonGroup = QButtonGroup()
+        buttongroup_results = {}
         i = 1
+        if tab:
+            name = "tab"
+            i = 2
+        elif arguments.radiolist:
+            name = "radiolist"
+        elif arguments.menu:
+            name = "menu"
+        arglen = len(arguments.__dict__[name])
         while i < arglen:
             if arguments.radiolist:
-                radiobutton = QRadioButton(arguments.radiolist[i+1])
-                self.buttongroup_results[radiobutton] = arguments.radiolist[i]
-                if arguments.radiolist[i+2].lower() == "true":
+                radiobutton = QRadioButton(arguments.__dict__[name][i+1])
+                buttongroup_results[radiobutton] = arguments.__dict__[name][i]
+                if arguments.__dict__[name][i+2].lower() in ["true", "on"]:
                     radiobutton.setChecked(True)
                 i += 3
             else:
-                radiobutton = QRadioButton(arguments.menu[i+1])
-                self.buttongroup_results[radiobutton] = arguments.menu[i]
+                radiobutton = QRadioButton(arguments.__dict__[name][i+1])
+                buttongroup_results[radiobutton] = arguments.__dict__[name][i]
                 if i == 1:
                     radiobutton.setChecked(True)
                 i += 2
-            self.scrollLayout.addWidget(radiobutton)
-            self.buttonGroup.addButton(radiobutton)
-
+            scrollLayout.addWidget(radiobutton)
+            buttonGroup.addButton(radiobutton)
+        return scrollLayout, buttonGroup, buttongroup_results
 
     def set_button_labels(self):
         """Set the button labels"""
@@ -436,13 +473,21 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         for e in self.checkboxes:
             if e["box"].isChecked():
                 print('"%s" ' % e["result"], end="")
-                
+        if arguments.tab:
+            for e in self.checkboxes2:
+                if e["box"].isChecked():
+                    print('"%s" ' % e["result"], end="")
+                    
     def get_checked_radiobutton(self):
-        radiobutton_name = self.buttonGroup.checkedButton()
+        n = ""
+        if arguments.tab:
+             if self.tabwidget.currentIndex() == 1:
+                 n = "2"
+        radiobutton_name = self.__dict__["buttonGroup"+n].checkedButton()
         if arguments.radiolist:
-            print('%s' % self.buttongroup_results[radiobutton_name])
+            print('%s' % self.__dict__["buttongroup_results"+n][radiobutton_name])
         else:
-            print(self.buttongroup_results[radiobutton_name])
+            print(self.__dict__["buttongroup_results"+n][radiobutton_name])
     
 
     def ok_button_clicked(self):
