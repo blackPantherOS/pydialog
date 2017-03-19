@@ -42,6 +42,8 @@ def call_parser():
     parser.add_argument("--radiolist", metavar=_("<text> [tag item status] ..."), help=_("Radio List dialog"), nargs='+')
     parser.add_argument("--menu", metavar=_("<text> [tag item] [tag item] ..."), help=_("Menu dialog"), nargs='+')
 
+    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"), dest="separateoutput", action='store_true')
+
     # TODO: icons needed
     parser.add_argument("--sorry", help=_("Sorry message box"), metavar=_("<text>"))
     parser.add_argument("--warningyesno", metavar=_("<text>"), help=_("Warning message box with yes/no buttons"))
@@ -74,7 +76,6 @@ def call_parser():
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
     parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
     parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
-    parser.add_argument("--separate-output", help=_("Return list items on separate lines (for checklist option and file open with --multiple)"), dest="separateoutput")
     parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
     parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs='+')
     parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"), nargs=1)
@@ -97,7 +98,7 @@ def call_parser():
 
     unfinished = ["combobox", "textinputbox", "passivepopup",
         "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
-        "getsaveurl", "geticon", "getcolor", "default", "multiple", "separateoutput", "printwinid",
+        "getsaveurl", "geticon", "getcolor", "default", "multiple", "printwinid",
         "dontagain", "calendar", "attach", "textbox"]
     
     for argument in unfinished:
@@ -470,13 +471,19 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     
     
     def print_checkboxes(self):
+        if arguments.separateoutput:
+            fs = '{}'
+            data_end = "\n"
+        else:
+            fs = '"{}"'
+            data_end = " "
         for e in self.checkboxes:
             if e["box"].isChecked():
-                print('"%s" ' % e["result"], end="")
+                print(fs.format(e["result"]), end=data_end)
         if arguments.tab:
             for e in self.checkboxes2:
                 if e["box"].isChecked():
-                    print('"%s" ' % e["result"], end="")
+                    print(fs.format(e["result"]), end=data_end)
                     
     def get_checked_radiobutton(self):
         n = ""
@@ -484,10 +491,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
              if self.tabwidget.currentIndex() == 1:
                  n = "2"
         radiobutton_name = self.__dict__["buttonGroup"+n].checkedButton()
-        if arguments.radiolist:
-            print('%s' % self.__dict__["buttongroup_results"+n][radiobutton_name])
-        else:
-            print(self.__dict__["buttongroup_results"+n][radiobutton_name])
+        print(self.__dict__["buttongroup_results"+n][radiobutton_name])
     
 
     def ok_button_clicked(self):
