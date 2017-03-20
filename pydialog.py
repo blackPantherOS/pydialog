@@ -333,15 +333,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 layout2 = QVBoxLayout(tab2)
                 layout.addLayout(scrollAreaLayout)
                 layout2.addLayout(scrollAreaLayout2)
-                layout.addWidget(hscrollbar)
-                layout2.addWidget(hscrollbar2)
+                #layout.addWidget(hscrollbar)
+                #layout2.addWidget(hscrollbar2)
                 self.tabwidget = QTabWidget(self)
                 self.tabwidget.addTab(tab1, arguments.tab[0])
                 self.tabwidget.addTab(tab2, arguments.tab[1])
                 self.verticalLayout_2.addWidget(self.tabwidget)
             else:
                 self.verticalLayout_2.addLayout(scrollAreaLayout)
-                self.verticalLayout_2.addWidget(hscrollbar)
+                #self.verticalLayout_2.addWidget(hscrollbar)
             if arguments.checklist:
                 self.label.setText(arguments.checklist[0])
             elif arguments.radiolist:
@@ -367,7 +367,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.set_scrollarea_height(scrollArea)
             scrollArea.setWidget(scrollWidget)
             scrollAreaLayout.addWidget(scrollArea)
-            scrollAreaLayout.addWidget(vscrollbar)
+            #scrollAreaLayout.addWidget(vscrollbar)
             return scrollAreaLayout, hscrollbar
             
 
