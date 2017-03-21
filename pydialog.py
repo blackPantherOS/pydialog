@@ -315,7 +315,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             else:
                 scrollLayout, self.buttonGroup, self.buttongroup_results = self.add_radiobuttons()
             
-            scrollAreaLayout, hscrollbar = self.create_scrollarea(scrollLayout)
+            #scrollAreaLayout, hscrollbar = self.create_scrollarea(scrollLayout)
+            scrollAreaLayout = self.create_scrollarea(scrollLayout)
             
             if arguments.tab:
                 from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget
@@ -325,7 +326,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 else:
                     scrollLayout2, self.buttonGroup2, self.buttongroup_results2 = self.add_radiobuttons(True)
                         
-                scrollAreaLayout2, hscrollbar2 = self.create_scrollarea(scrollLayout2)                
+                #scrollAreaLayout2, hscrollbar2 = self.create_scrollarea(scrollLayout2)                
+                scrollAreaLayout2 = self.create_scrollarea(scrollLayout2)                
                 
                 tab1 = QWidget()
                 tab2 = QWidget()
@@ -351,24 +353,25 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.enable_buttons(["ok_button", "cancel_button"])
             
     def create_scrollarea(self, scrollLayout):
-            from PyQt5.QtWidgets import QHBoxLayout, QWidget, QScrollArea, QScrollBar
+            from PyQt5.QtWidgets import QHBoxLayout, QWidget, QScrollArea
             from PyQt5.QtCore import Qt
 
             scrollWidget = QWidget()
             scrollAreaLayout = QHBoxLayout()                
             scrollWidget.setLayout(scrollLayout)
-            hscrollbar = QScrollBar()
-            vscrollbar = QScrollBar()
+            #hscrollbar = QScrollBar()
+            #vscrollbar = QScrollBar()
             scrollArea = QScrollArea()
-            scrollArea.setHorizontalScrollBar(hscrollbar)
-            scrollArea.setVerticalScrollBar(vscrollbar)
-            scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            #scrollArea.setHorizontalScrollBar(hscrollbar)
+            #scrollArea.setVerticalScrollBar(vscrollbar)
+            #scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            #scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             self.set_scrollarea_height(scrollArea)
             scrollArea.setWidget(scrollWidget)
             scrollAreaLayout.addWidget(scrollArea)
             #scrollAreaLayout.addWidget(vscrollbar)
-            return scrollAreaLayout, hscrollbar
+            return scrollAreaLayout
+            #, hscrollbar
             
 
     def set_scrollarea_height(self, scrollarea):
