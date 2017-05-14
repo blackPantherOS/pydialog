@@ -58,8 +58,10 @@ def call_parser():
 
     # TODO: Untested options below
     parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
+    parser.add_argument("--tab", metavar=_("<primary tab name> <secondary tab name> ..."), help=_("Open a new tab"), nargs='+')
 
     # TODO: Unfinished options below
+    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
 
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
@@ -77,12 +79,10 @@ def call_parser():
     parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
     parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
     parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
-    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs='+')
     parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"), nargs=1)
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
-    parser.add_argument("--tab", metavar=_("<primary tab name> <secondary tab name> ..."), help=_("Open a new tab"), nargs='+')
     parser.add_argument("--stayontop", help=_("The window stays on top"), action='store_true')
 
     parser.add_argument("--antisegfault", action='store_true')
@@ -99,7 +99,7 @@ def call_parser():
     unfinished = ["combobox", "textinputbox", "passivepopup",
         "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "printwinid",
-        "dontagain", "calendar", "attach", "textbox"]
+        "calendar", "attach", "textbox"]
     
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
@@ -111,6 +111,23 @@ def call_parser():
 arguments = call_parser()
 return_keyword = "<PYDIALOG-RESULT:"
 
+def dontagain_available():
+    if arguments.yesno or arguments.yesnocancel or arguments.warningyesno:
+        return True
+    elif arguments.warningcountinuecancel or arguments.warningyesnocancel or arguments.msgbox:
+        return True
+    else:
+        return False
+
+if arguments.dontagain and dontagain_available():
+    import configparser, os
+    config_section = "Notification Messages"
+    config = configparser.ConfigParser()
+    file, config_key = arguments.dontagain[0].split(':')
+    config_file = os.getenv("HOME") + "/.config/" + file
+    config.read(config_file)
+    if config.has_option(config_section, config_key):
+        sys.exit(config.getint(config_section, config_key))
 
 # DO NOT REMOVE! IT IS A SOLUTION TO A PYQT5 BUG (SEGFAULT)
 if not arguments.antisegfault:
@@ -176,10 +193,17 @@ from modules import window1
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
         global arguments, return_keyword
+        
         self.event_entered = False
         self.event2_entered = False
+
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        
+        if arguments.dontagain:
+            from PyQt5.QtWidgets import QCheckBox
+            self.dontagain_checkBox = QCheckBox(_("Don't show or ask this again."), self)
+            self.verticalLayout.addWidget(self.dontagain_checkBox)
         
         if arguments.stayontop:
             from PyQt5.QtCore import Qt
@@ -200,6 +224,16 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.button_values = {}
         self.create_elements()
         self.word_wrap()
+
+    def save_dontask(self, value):
+        if arguments.dontagain and dontagain_available() and value != 2:
+            if self.dontagain_checkBox.isChecked():
+                import configparser
+                config = configparser.ConfigParser()
+                config[config_section] = {}
+                config[config_section][config_key] = value
+                with open(config_file, 'w') as file:
+                    config.write(file)
 
     def word_wrap(self):
         if self.label.sizeHint().width() > 600:
@@ -510,15 +544,21 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.done(0)
     
     def yes_button_clicked(self):
-        print(return_keyword+str(self.button_values["yes_button"])+">")
+        value = str(self.button_values["yes_button"])
+        print(return_keyword+value+">")
+        self.save_dontask(value)
         self.done(0)
     
     def no_button_clicked(self):
-        print(return_keyword+str(self.button_values["no_button"])+">")
+        value = str(self.button_values["no_button"])
+        print(return_keyword+value+">")
+        self.save_dontask(value)
         self.done(0)
     
     def continue_button_clicked(self):
-        print(return_keyword+str(self.button_values["continue_button"])+">")
+        value = str(self.button_values["continue_button"])
+        print(return_keyword+value+">")
+        self.save_dontask(value)
         self.done(0)
 
     def save_button_clicked(self):
@@ -526,7 +566,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.done(0)
     
     def reject(self):
-        print(return_keyword+str(self.reject_value)+">")
+        value = str(self.reject_value)
+        print(return_keyword+value+">")
         self.done(0)
 
     def enable_buttons (self, button_list):
