@@ -59,6 +59,7 @@ def call_parser():
     # TODO: Untested options below
     parser.add_argument("--slider", metavar=_("<text> [minvalue] [maxvalue] [step]"), help=_("Slider dialog box, returns selected value"), nargs="+")    
     parser.add_argument("--tab", metavar=_("<primary tab name> <secondary tab name> ..."), help=_("Open a new tab"), nargs='+')
+    parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
 
     # TODO: Unfinished options below
     parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
@@ -69,7 +70,6 @@ def call_parser():
 
      # TODO: Waiting for GUI
 
-    parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
     parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"), nargs='*')
     parser.add_argument("--getexistingdirectory", metavar=_("[startDir]"), help=_("File dialog to select an existing directory"), nargs='*')
     parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"), nargs='*')
@@ -97,7 +97,7 @@ def call_parser():
 
 
     unfinished = ["combobox", "textinputbox", "passivepopup",
-        "getopenfilename", "getsavefilename", "getexistingdirectory", "getopenurl",
+        "getsavefilename", "getexistingdirectory", "getopenurl",
         "getsaveurl", "geticon", "getcolor", "default", "multiple", "printwinid",
         "calendar", "attach", "textbox"]
     
@@ -110,6 +110,23 @@ def call_parser():
 
 arguments = call_parser()
 return_keyword = "<PYDIALOG-RESULT:"
+
+pydialog_title = _("pydialog")
+if arguments.title:
+    pydialog_title = arguments.title
+
+if arguments.getopenfilename:
+    from PyQt5.QtWidgets import QFileDialog, QApplication, QDialog
+    app = QApplication(sys.argv)
+    filters = _("All Files (*)")
+    if len(arguments.getopenfilename) > 1:
+        filters = arguments.getopenfilename[1]
+    dialog = QFileDialog(None, pydialog_title, arguments.getopenfilename[0], filters)
+    if dialog.exec_() == QDialog.Accepted:
+        print(dialog.selectedFiles()[0])
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 def dontagain_available():
     if arguments.yesno or arguments.yesnocancel or arguments.warningyesno:
@@ -273,7 +290,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         """ Initial configurations (buttons and labels) """
         global arguments
         if arguments.title:
-            self.setWindowTitle(arguments.title)
+            self.setWindowTitle(pydialog_title)
         if arguments.icon:
             from PyQt5.QtGui import QIcon
             icon = QIcon(arguments.icon)
