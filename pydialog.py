@@ -62,6 +62,7 @@ def call_parser():
     parser.add_argument("--getopenfilename", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing file"), nargs='*')
     parser.add_argument("--getsavefilename", metavar=_("[startDir] [filter]"), help=_("File dialog to save a file"), nargs='*')
     parser.add_argument("--getexistingdirectory", metavar=_("[startDir]"), help=_("File dialog to select an existing directory"), nargs='*')
+    parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"), nargs='*')
 
     # TODO: Unfinished options below
     parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
@@ -69,7 +70,6 @@ def call_parser():
 
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
-    parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"), nargs='*')
     parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"), nargs='*')
     parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"), nargs='*')
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"))
@@ -97,7 +97,7 @@ def call_parser():
 
 
     unfinished = ["combobox", "textinputbox", "passivepopup",
-        "getopenurl", "getsaveurl", 
+        "getsaveurl", 
         "geticon", "getcolor", 
         "default", "multiple", "printwinid",
         "calendar", "attach", "textbox"]
@@ -116,7 +116,8 @@ pydialog_title = _("pydialog")
 if arguments.title:
     pydialog_title = arguments.title
 
-if arguments.getopenfilename or arguments.getsavefilename or arguments.getexistingdirectory:
+if arguments.getopenfilename or arguments.getsavefilename or arguments.getexistingdirectory or\
+arguments.getopenurl:
     from PyQt5.QtWidgets import QFileDialog, QApplication, QDialog
     app = QApplication(sys.argv)
     filters = _("All Files (*)")
@@ -130,6 +131,10 @@ if arguments.getopenfilename or arguments.getsavefilename or arguments.getexisti
             filters = arguments.getsavefilename[1]
     elif arguments.getexistingdirectory:
         directory = arguments.getexistingdirectory[0]
+    elif arguments.getopenurl:
+        directory = arguments.getopenurl[0]
+        if len(arguments.getopenurl) > 1:
+            filters = arguments.getopenurl[1]
     if arguments.getopenfilename:
         dialog = QFileDialog(None, pydialog_title, directory, filters)
         if dialog.exec_() == QDialog.Accepted:
@@ -143,6 +148,10 @@ if arguments.getopenfilename or arguments.getsavefilename or arguments.getexisti
     elif arguments.getexistingdirectory:
         existingdirectory = QFileDialog.getExistingDirectory(None, pydialog_title, directory)
         print(existingdirectory)
+        sys.exit(0)
+    elif arguments.getopenurl:
+        url = QFileDialog.getOpenFileUrl(None, pydialog_title, directory, filters)[0].toString()
+        print(url)
         sys.exit(0)
     sys.exit(1)
 
