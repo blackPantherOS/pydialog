@@ -65,23 +65,25 @@ def call_parser():
     parser.add_argument("--getopenurl", metavar=_("[startDir] [filter]"), help=_("File dialog to open an existing URL"), nargs='*')
     parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"), nargs='*') # TODO: The path is not relative!
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"), action='store_true')
+    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
 
     # TODO: Unfinished options below
-    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
-
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
-    parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"), nargs='*')
-    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"), nargs=1)
+
+    parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
+    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
+    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
+    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
+    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
 
      # TODO: Waiting for GUI
 
-    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
-    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
-    parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
-    parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
-    parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
+    parser.add_argument("--calendar", metavar=_("<text>"), help=_("Calendar dialog box, returns selected date"), nargs=1)
+    parser.add_argument("--geticon", metavar=_("[group] [context]"), help=_("Icon chooser dialog"), nargs='*')
+
+    # The pydialog's own arguments (do not use them in the kdialog!)
 
     parser.add_argument("--stayontop", help=_("The window stays on top"), action='store_true')
 
@@ -99,7 +101,7 @@ def call_parser():
     unfinished = ["combobox", "textinputbox", "passivepopup",
         "geticon",
         "default", "multiple", "printwinid",
-        "calendar", "attach", "textbox"]
+        "calendar", "attach"]
     
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
@@ -349,14 +351,31 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             else:
                 self.label.setText(arguments.warningyesnocancel)
 
-        elif arguments.sorry or arguments.error or arguments.msgbox:
+        elif arguments.sorry or arguments.error or arguments.msgbox or arguments.textbox:
             self.enable_buttons(["ok_button"])
             if arguments.sorry:
                 self.label.setText(arguments.sorry)
             elif arguments.error:
                 self.label.setText(arguments.error)
-            else:
+            elif arguments.msgbox:
                 self.label.setText(arguments.msgbox)
+            elif arguments.textbox:
+                from PyQt5.QtWidgets import QTextBrowser
+                width = 400
+                height = 250
+                url = arguments.textbox[0]
+                if len(arguments.textbox) > 1:
+                    width = int(arguments.textbox[1])
+                    if len(arguments.textbox) > 2:
+                        height = int(arguments.textbox[2])
+                self.textbrowser = QTextBrowser()
+                self.textbrowser.setMinimumSize(width, height)
+                self.verticalLayout_2.addWidget(self.textbrowser)
+                file = open(url, "r")
+                self.textbrowser.setText(file.read())
+                file.close()
+                
+                
 
         elif arguments.detailedsorry or arguments.detailederror:
             self.enable_buttons(["details_button", "ok_button"])
