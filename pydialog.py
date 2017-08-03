@@ -66,9 +66,9 @@ def call_parser():
     parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"), nargs='*') # TODO: The path is not relative!
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"), action='store_true')
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
+    parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
 
     # TODO: Unfinished options below
-    parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
 
@@ -98,7 +98,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["combobox", "textinputbox", "passivepopup",
+    unfinished = ["textinputbox", "passivepopup",
         "geticon",
         "default", "multiple", "printwinid",
         "calendar", "attach"]
@@ -374,8 +374,6 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 file = open(url, "r")
                 self.textbrowser.setText(file.read())
                 file.close()
-                
-                
 
         elif arguments.detailedsorry or arguments.detailederror:
             self.enable_buttons(["details_button", "ok_button"])
@@ -417,6 +415,15 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.lineEdit.setEchoMode(2)
             self.label.setText(arguments.password[0])
             self.label_2.setText(_("Password:"))
+
+        elif arguments.combobox:
+#            from PyQt5.QtWidgets import QComboBox
+#            self.combobox = QComboBox()
+            self.comboBox.addItems(arguments.combobox[1:])
+#            self.verticalLayout.addWidget(self.combobox)
+            self.label_2.setParent(None)
+            self.enable_buttons(["ok_button", "cancel_button"])
+            self.label.setText(arguments.combobox[0])
 
         elif arguments.checklist or arguments.radiolist or arguments.menu:
             if arguments.checklist:
@@ -604,7 +611,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                  n = "2"
         radiobutton_name = self.__dict__["buttonGroup"+n].checkedButton()
         print(self.__dict__["buttongroup_results"+n][radiobutton_name])
-    
+
+    def get_combo_text(self):
+        print(self.comboBox.currentText())
 
     def ok_button_clicked(self):
         if arguments.slider:
@@ -615,6 +624,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.print_checkboxes()
         elif arguments.radiolist or arguments.menu:
             self.get_checked_radiobutton()
+        elif arguments.combobox:
+            self.get_combo_text()
         print(return_keyword+str(self.button_values["ok_button"])+">")
         self.done(0)
     
