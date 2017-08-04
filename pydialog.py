@@ -67,9 +67,9 @@ def call_parser():
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"), action='store_true')
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
+    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
 
     # TODO: Unfinished options below
-    parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
 
     parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
@@ -98,7 +98,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["textinputbox", "passivepopup",
+    unfinished = ["passivepopup",
         "geticon",
         "default", "multiple", "printwinid",
         "calendar", "attach"]
@@ -417,13 +417,28 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label_2.setText(_("Password:"))
 
         elif arguments.combobox:
-#            from PyQt5.QtWidgets import QComboBox
-#            self.combobox = QComboBox()
             self.comboBox.addItems(arguments.combobox[1:])
-#            self.verticalLayout.addWidget(self.combobox)
             self.label_2.setParent(None)
             self.enable_buttons(["ok_button", "cancel_button"])
             self.label.setText(arguments.combobox[0])
+            
+        elif arguments.textinputbox:
+            from PyQt5.QtWidgets import QTextEdit
+            self.enable_buttons(["ok_button"])
+            self.textedit = QTextEdit()
+            width = 400
+            height = 250
+            init_text = ""
+            self.label.setText(arguments.textinputbox[0])
+            if len(arguments.textinputbox) > 1:
+                init_text = arguments.textinputbox[1]
+                if len(arguments.textinputbox) > 2:
+                    width = int(arguments.textinputbox[2])
+                    if len(arguments.textinputbox) > 3:
+                        height = int(arguments.textinputbox[3])
+            self.textedit.setMinimumSize(width, height)
+            self.verticalLayout_2.addWidget(self.textedit)
+            self.textedit.setText(init_text)            
 
         elif arguments.checklist or arguments.radiolist or arguments.menu:
             if arguments.checklist:
@@ -626,6 +641,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.get_checked_radiobutton()
         elif arguments.combobox:
             self.get_combo_text()
+        elif arguments.textinputbox:
+            print(self.textedit.toPlainText())
         print(return_keyword+str(self.button_values["ok_button"])+">")
         self.done(0)
     
