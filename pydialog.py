@@ -68,6 +68,7 @@ def call_parser():
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
+    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"), action='store_true')
 
     # TODO: Unfinished options below
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
@@ -76,7 +77,6 @@ def call_parser():
     parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
     parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
-    parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"))
 
      # TODO: Waiting for GUI
 
@@ -98,10 +98,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["passivepopup",
-        "geticon",
-        "default", "multiple", "printwinid",
-        "calendar", "attach"]
+    unfinished = ["passivepopup", "geticon", "default", "printwinid", "calendar", "attach"]
     
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
@@ -141,10 +138,18 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
         if len(arguments.getsaveurl) > 1:
             filters = arguments.getsaveurl[1]
     if arguments.getopenfilename:
-        dialog = QFileDialog(None, pydialog_title, directory, filters)
-        if dialog.exec_() == QDialog.Accepted:
-            print(dialog.selectedFiles()[0])
-            sys.exit(0)
+        if arguments.multiple:
+            try:
+                files, filt = QFileDialog.getOpenFileNames(None, pydialog_title, directory, filters)
+                print(" ".join(files))
+                sys.exit(0)
+            except:
+                pass
+        else:
+            dialog = QFileDialog(None, pydialog_title, directory, filters)
+            if dialog.exec_() == QDialog.Accepted:
+                print(dialog.selectedFiles()[0])
+                sys.exit(0)
     elif arguments.getsavefilename:
         from os.path import relpath
         savefilename = relpath(QFileDialog.getSaveFileName(None, pydialog_title, directory, filters)[0])
@@ -155,9 +160,14 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
         print(existingdirectory)
         sys.exit(0)
     elif arguments.getopenurl:
-        url = QFileDialog.getOpenFileUrl(None, pydialog_title, directory, filters)[0].toString()
-        print(url)
-        sys.exit(0)
+        if arguments.multiple:
+            r = [e.toString() for e in QFileDialog.getOpenFileUrls(None, pydialog_title, directory, filters)[0]]
+            urls = " ".join(r)
+            print(urls)
+        else:
+            url = QFileDialog.getOpenFileUrl(None, pydialog_title, directory, filters)[0].toString()
+            print(url)
+            sys.exit(0)
     elif arguments.getsaveurl:
         url = QFileDialog.getSaveFileUrl(None, pydialog_title, directory, filters)[0].toString()
         print(url)
