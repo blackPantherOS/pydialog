@@ -69,6 +69,7 @@ def call_parser():
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"), action='store_true')
+    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
 
     # TODO: Unfinished options below
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
@@ -76,7 +77,6 @@ def call_parser():
     parser.add_argument("--dontagain", metavar=_("<file:entry>"), help=_("Config file and option name for saving the 'do-not-show/ask-again' state"), nargs=1)
     parser.add_argument("--print-winid", help=_("Outputs the winId of each dialog"), dest="printwinid")
     parser.add_argument("--attach", metavar=_("<winid>"), help=_("Makes the dialog transient for an X app specified by winid"), nargs=1)
-    parser.add_argument("--default", metavar=_("<text>"), help=_("Default entry to use for combobox, menu and color"), nargs='?')
 
      # TODO: Waiting for GUI
 
@@ -98,7 +98,7 @@ def call_parser():
         arguments.error = [_("PyDialog - %s: %s") % (error_type, name)]
 
 
-    unfinished = ["passivepopup", "geticon", "default", "printwinid", "calendar", "attach"]
+    unfinished = ["passivepopup", "geticon", "printwinid", "calendar", "attach"]
     
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
@@ -174,7 +174,11 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
         sys.exit(0)
     elif arguments.getcolor:
         from PyQt5.QtWidgets import QColorDialog
-        color = QColorDialog.getColor().name()
+        if arguments.default:
+            from PyQt5.QtGui import QColor
+            color = QColorDialog.getColor(QColor(arguments.default)).name()
+        else:
+            color = QColorDialog.getColor().name()
         print(color)
         sys.exit(0)
     sys.exit(1)
@@ -257,11 +261,9 @@ from PyQt5.QtWidgets import QPushButton, QDialog, QApplication, QSizePolicy
 
 from modules import window1
 
-
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
         global arguments, return_keyword
-        
         self.event_entered = False
         self.event2_entered = False
 
@@ -428,6 +430,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
         elif arguments.combobox:
             self.comboBox.addItems(arguments.combobox[1:])
+            if arguments.default:
+                self.comboBox.setCurrentText(arguments.default)
             self.label_2.setParent(None)
             self.enable_buttons(["ok_button", "cancel_button"])
             self.label.setText(arguments.combobox[0])
@@ -577,6 +581,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
                 buttongroup_results[radiobutton] = arguments.__dict__[name][i]
                 if i == 1:
                     radiobutton.setChecked(True)
+                if arguments.menu and arguments.default:
+                    if arguments.__dict__[name][i+1] == arguments.default:
+                        radiobutton.setChecked(True)
                 i += 2
             scrollLayout.addWidget(radiobutton)
             buttonGroup.addButton(radiobutton)
