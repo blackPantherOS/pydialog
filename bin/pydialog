@@ -11,7 +11,7 @@
 #*          The maintainer of the Pydialog: Miklos Horvath * hmiki[]blackpantheros.eu                    *
 #*************************************************************************************(c)2002-2017********
 
-VERSION = "0.9.4"
+VERSION = "0.9.7"
 
 import sys, time
 import gettext
@@ -292,7 +292,7 @@ if not arguments.antisegfault:
 
 from PyQt5.QtWidgets import QPushButton, QDialog, QApplication, QSizePolicy
 
-from modules import window1
+from blackPanther_pydialog import window1
 
 class MainWindow(QDialog, window1.Ui_PyDialog):
     def __init__(self, parent=None):
