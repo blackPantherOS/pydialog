@@ -311,6 +311,7 @@ import ptyprocess
 
 if arguments.pkg_install or arguments.pkg_uninstall:
     class InstallerThread(QThread):
+        disable_sig = pyqtSignal()
         result_sig = pyqtSignal(str)
         ask_sig = pyqtSignal(str)
         finish_sig = pyqtSignal()
@@ -321,6 +322,7 @@ if arguments.pkg_install or arguments.pkg_uninstall:
         def __init__(self, parent):
                     QThread.__init__(self)
                     self.parent = parent
+                    self.disable_sig.connect(self.parent.disable_yesno_buttons)
                     self.result_sig.connect(self.parent.installer_sent_message)
                     self.ask_sig.connect(self.parent.installer_ask)
                     self.finish_sig.connect(self.parent.installer_finished)
@@ -334,25 +336,33 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                     self.work = True
 
         def yes(self):
-            self.pkg_process.write("y\n")
+            self.disable_sig.emit()
             self.clear_sig.emit()
+            self.pkg_process.write("y\n")
  
         def no(self):
-            self.pkg_process.write("n\n")
+            self.disable_sig.emit()
             self.clear_sig.emit()
+            self.pkg_process.write("n\n")
                     
         def run(self):
             lastline = ""
             while True:
                 if self.work:
                     try:
-                        buffer = self.pkg_process.read(100)
+                        buffer = self.pkg_process.read(1)
                         lastline += buffer
-                        if '\n' in buffer:
-                            self.result_sig.emit(lastline.replace('\n', '<br>'))
-                            lastline = buffer[buffer.rfind('\n'):]
-                        if '?' in buffer:
+                        if '\n' in lastline:
+                            if "Percentage:" in lastline:
+                                lastline = ""
+                            elif "Status:" in lastline:
+                                lastline = ""
+                            else:
+                                self.result_sig.emit('{}<br>'.format(lastline[:-1]))
+                                lastline = ""
+                        if '?' in lastline:
                             self.ask_sig.emit(lastline)
+                            lastline = ""
                     except Exception as e:
                         self.finish_sig.emit()
                         self.work = False
@@ -857,6 +867,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         
     def clear_label(self):
         self.label.setText("")        
+
+    def disable_yesno_buttons(self):
+        self.disable_buttons(["yes_button", "no_button"])
     
     def yes_button_clicked(self):
         if not(arguments.pkg_install or arguments.pkg_uninstall):
