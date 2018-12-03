@@ -19,4 +19,8 @@ Plans:
 
 Working dialogs/options:
 ------------------------
+- 90% compatiblility with kdialog
+- easy gui for PackageKit install/uninstall
+- many other exended options: example: settings button, expendables details, etc.
+
 Please run to print available options: pydialog --help
