@@ -343,15 +343,14 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                     
         def run(self):
             lastline = ""
-            while True: #for i in range(100):
+            while True:
                 if self.work:
                     try:
-                        buffer = self.pkg_process.read(1)
+                        buffer = self.pkg_process.read(100)
                         lastline += buffer
                         if '\n' in buffer:
                             self.result_sig.emit(lastline.replace('\n', '<br>'))
-                            lastline = ""
-                            time.sleep(1)
+                            lastline = buffer[buffer.rfind('\n'):]
                         if '?' in buffer:
                             self.ask_sig.emit(lastline)
                     except Exception as e:
@@ -405,9 +404,39 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         else:
             self.toolButton.hide()
             self.spacerItem1.changeSize(0, 0)
+
         if arguments.pkg_install or arguments.pkg_uninstall:
+            import os
+            from PyQt5.QtWidgets import QTextBrowser
+
             self.installer = InstallerThread(self)
             self.installer.start()
+            width = 400
+            height = 250
+            self.textbrowser = QTextBrowser()
+            self.textbrowser.setMinimumSize(width, height)
+            self.verticalLayout.insertWidget(0, self.textbrowser)
+            env = os.environ
+            env["LC_ALL"] = "C"
+            pkcon_args = ['pkcon','-p']
+            if arguments.pkg_install:
+                if ".rpm" in arguments.pkg_install[0]:
+                    pkcon_args += ["install-local"]
+                else:
+                    pkcon_args += ["install"]
+            if arguments.pkg_uninstall: pkcon_args += ["remove"]
+            if arguments.pkg_noninteractive: pkcon_args += ["--noninteractive"]
+            if arguments.pkg_only_download: pkcon_args += ["--only-download"]
+            if arguments.pkg_allow_downgrade: pkcon_args += ["--allow-downgrade"]
+            if arguments.pkg_allow_reinstall: pkcon_args += ["--allow-reinstall"]
+            if arguments.pkg_allow_untrusted: pkcon_args += ["--allow-untrusted"]
+            if arguments.pkg_background: pkcon_args += ["--background"]
+            if arguments.pkg_filter: pkcon_args += ["--filter", arguments.pgk_filter]
+            if arguments.pkg_install: pkcon_args += arguments.pkg_install
+            if arguments.pkg_uninstall: pkcon_args += arguments.pkg_uninstall
+            
+            self.installer.set_job(pkcon_args, env)
+
 
     def save_dontask(self, value):
         if arguments.dontagain and dontagain_available() and value != 2:
@@ -445,7 +474,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.set_button_labels()
 
         if arguments.pkg_install or arguments.pkg_uninstall:
-            self.disable_buttons(["yes_button","no_button"])
+            self.disable_buttons(["yes_button","no_button", "cancel_button"])
 
 #        noab = len(list(filter(lambda x: self.active_buttons[x], self.active_buttons)))
 #        self.reject_value = noab - 1
@@ -632,7 +661,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.enable_buttons(["ok_button", "cancel_button"])
             
         elif arguments.pkg_install or arguments.pkg_uninstall:
-            self.enable_buttons(["yes_button","no_button","ok_button","cancel_button"])
+            self.enable_buttons(["yes_button","no_button","cancel_button"])
             
     def create_scrollarea(self, scrollLayout):
             from PyQt5.QtWidgets import QHBoxLayout, QWidget, QScrollArea
@@ -796,52 +825,22 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         print(self.comboBox.currentText())
 
     def ok_button_clicked(self):
-        if not(arguments.pkg_install or arguments.pkg_uninstall):
-            if arguments.slider:
-                print(self.horizontalSlider.value())
-            elif arguments.inputbox or arguments.password:
-                print(self.lineEdit.text())
-            elif arguments.checklist:
-                self.print_checkboxes()
-            elif arguments.radiolist or arguments.menu:
-                self.get_checked_radiobutton()
-            elif arguments.combobox:
-                self.get_combo_text()
-            elif arguments.textinputbox:
-                print(self.textedit.toPlainText())
-            value = str(self.button_values["ok_button"])
-            print(return_keyword+str(self.button_values["ok_button"])+">")
-            self.save_dontask(value)
-            self.done(0)
-        else:
-            import os
-            from PyQt5.QtWidgets import QTextBrowser
-            self.disable_buttons(["ok_button"])
-            width = 400
-            height = 250
-            self.textbrowser = QTextBrowser()
-            self.textbrowser.setMinimumSize(width, height)
-            self.verticalLayout.insertWidget(0, self.textbrowser)
-            env = os.environ
-            env["LC_ALL"] = "C"
-            pkcon_args = ['pkcon','-p']
-            if arguments.pkg_install:
-                if ".rpm" in arguments.pkg_install[0]:
-                    pkcon_args += ["install-local"]
-                else:
-                    pkcon_args += ["install"]
-            if arguments.pkg_uninstall: pkcon_args += ["remove"]
-            if arguments.pkg_noninteractive: pkcon_args += ["--noninteractive"]
-            if arguments.pkg_only_download: pkcon_args += ["--only-download"]
-            if arguments.pkg_allow_downgrade: pkcon_args += ["--allow-downgrade"]
-            if arguments.pkg_allow_reinstall: pkcon_args += ["--allow-reinstall"]
-            if arguments.pkg_allow_untrusted: pkcon_args += ["--allow-untrusted"]
-            if arguments.pkg_background: pkcon_args += ["--background"]
-            if arguments.pkg_filter: pkcon_args += ["--filter", arguments.pgk_filter]
-            if arguments.pkg_install: pkcon_args += arguments.pkg_install
-            if arguments.pkg_uninstall: pkcon_args += arguments.pkg_uninstall
-            
-            self.installer.set_job(pkcon_args, env)
+        if arguments.slider:
+            print(self.horizontalSlider.value())
+        elif arguments.inputbox or arguments.password:
+            print(self.lineEdit.text())
+        elif arguments.checklist:
+            self.print_checkboxes()
+        elif arguments.radiolist or arguments.menu:
+            self.get_checked_radiobutton()
+        elif arguments.combobox:
+            self.get_combo_text()
+        elif arguments.textinputbox:
+            print(self.textedit.toPlainText())
+        value = str(self.button_values["ok_button"])
+        print(return_keyword+str(self.button_values["ok_button"])+">")
+        self.save_dontask(value)
+        self.done(0)
 
     def installer_sent_message(self, message):
         self.textbrowser.insertHtml(message)
@@ -853,6 +852,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
     def installer_finished(self):
         self.clear_label()
         self.disable_buttons(["yes_button", "no_button"])
+        self.show_buttons(["cancel_button"])
         self.buttons["cancel_button"].setText(_("Exit"))
         
     def clear_label(self):
