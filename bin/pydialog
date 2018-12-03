@@ -310,6 +310,35 @@ import ptyprocess
 
 
 if arguments.pkg_install or arguments.pkg_uninstall:
+    translations = {
+        "Transaction": _("Transaction"),
+        "Resolving" : _("Resolving"),
+        "Waiting in queue" : _("Waiting in queue"),
+        "Starting" : _("Starting"),
+        "Querying" : _("Querying"),
+        "Loading cache" : _("Loading cache"),
+        "Installing" : _("Installing"),
+        "Finished" : _("Finished"),
+        "The following packages have to be installed" : _("The following packages have to be installed"),
+        "Waiting for authentication" : _("Waiting for authentication"),
+        "Downloading packages" : _("Downloading packages"),
+        "Package:" : _("Package:"),
+        "Downloaded" : _("Downloaded"),
+        "Installed" : _("Installed"),
+        "Proceed with changes" : _("Proceed with changes"),
+        "The following packages have to be removed" : _("The following packages have to be removed"),
+        "Requesting data" : _("Requesting data"),
+        "Removing packages" : _("Removing packages"),
+        "Results" : _("Results"),
+        "Removed" : _("Removed"),
+    } 
+    
+    def translate(text):        
+        for key in translations:
+            if key in text:
+                text = text.replace(key, translations[key])
+        return text
+    
     class InstallerThread(QThread):
         progress_sig = pyqtSignal(int, str)
         disable_sig = pyqtSignal()
@@ -362,14 +391,14 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                                 lastline = ""
                                 self.progress_sig.emit(percentage, status)
                             elif "Status:" in lastline:
-                                status = lastline.strip().split(":")[1]
+                                status = translate(lastline.strip().split(":")[1])
                                 lastline = ""
                                 self.progress_sig.emit(percentage, status)
                             else:
-                                self.result_sig.emit('{}<br>'.format(lastline[:-1]))
+                                self.result_sig.emit('{}<br>'.format(translate(lastline[:-1])))
                                 lastline = ""
                         if '?' in lastline:
-                            self.ask_sig.emit(lastline)
+                            self.ask_sig.emit(translate(lastline))
                             lastline = ""
                     except Exception as e:
                         self.finish_sig.emit()
@@ -865,6 +894,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
     def installer_sent_message(self, message):
         self.textbrowser.insertHtml(message)
+        sb = self.textbrowser.verticalScrollBar()
+        sb.setValue(sb.maximum())
 
     def installer_ask(self, message):
         self.label.setText(message)
