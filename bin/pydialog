@@ -311,6 +311,7 @@ import ptyprocess
 
 if arguments.pkg_install or arguments.pkg_uninstall:
     class InstallerThread(QThread):
+        progress_sig = pyqtSignal(int, str)
         disable_sig = pyqtSignal()
         result_sig = pyqtSignal(str)
         ask_sig = pyqtSignal(str)
@@ -322,6 +323,7 @@ if arguments.pkg_install or arguments.pkg_uninstall:
         def __init__(self, parent):
                     QThread.__init__(self)
                     self.parent = parent
+                    self.progress_sig.connect(self.parent.set_progressbar)
                     self.disable_sig.connect(self.parent.disable_yesno_buttons)
                     self.result_sig.connect(self.parent.installer_sent_message)
                     self.ask_sig.connect(self.parent.installer_ask)
@@ -347,6 +349,8 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                     
         def run(self):
             lastline = ""
+            percentage = 0
+            status = ""
             while True:
                 if self.work:
                     try:
@@ -354,9 +358,13 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                         lastline += buffer
                         if '\n' in lastline:
                             if "Percentage:" in lastline:
+                                percentage = int(lastline.strip().split(":")[1])
                                 lastline = ""
+                                self.progress_sig.emit(percentage, status)
                             elif "Status:" in lastline:
+                                status = lastline.strip().split(":")[1]
                                 lastline = ""
+                                self.progress_sig.emit(percentage, status)
                             else:
                                 self.result_sig.emit('{}<br>'.format(lastline[:-1]))
                                 lastline = ""
@@ -444,9 +452,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if arguments.pkg_filter: pkcon_args += ["--filter", arguments.pgk_filter]
             if arguments.pkg_install: pkcon_args += arguments.pkg_install
             if arguments.pkg_uninstall: pkcon_args += arguments.pkg_uninstall
-            
+            self.progressBar.show()
             self.installer.set_job(pkcon_args, env)
 
+    def set_progressbar(self, value, text):
+            self.progressBar.setFormat(text + " (%p%)")
+            self.progressBar.setValue(value)
 
     def save_dontask(self, value):
         if arguments.dontagain and dontagain_available() and value != 2:
