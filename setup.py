@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name="blackPanther-pydialog",
 
-    version="0.9.7",
+    version="0.9.8",
 
     description="PyDialog [PyQt5] is a new dialog instead kdialog or zenity",
     long_description = """
