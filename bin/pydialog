@@ -86,7 +86,6 @@ def call_parser():
     parser.add_argument("--pkg-allow-untrusted", dest="pkg_allow_untrusted", help=_("pkcon --allow-untrusted"), action='store_true')
     parser.add_argument("--pkg-background", dest="pkg_background", help=_("pkcon --background"), action='store_true')
     parser.add_argument("--pkg-filter", dest="pkg_filter", help=_("pkcon --filter"), metavar=_("<filter>"), nargs=1)
-    parser.add_argument("--pkg-console", dest="pkg_console", help=_("It will show a console for logs"), action='store_true')
 
     # TODO: Unfinished options below
     parser.add_argument("--passivepopup", metavar=_("<text> <timeout>"), help=_("Passive Popup"), nargs='+')
@@ -348,6 +347,7 @@ if arguments.pkg_install or arguments.pkg_uninstall:
         progress_sig = pyqtSignal(int, str)
         disable_sig = pyqtSignal()
         result_sig = pyqtSignal(str)
+        console_sig = pyqtSignal(bool)
         ask_sig = pyqtSignal(str)
         finish_sig = pyqtSignal()
         clear_sig = pyqtSignal()
@@ -360,6 +360,7 @@ if arguments.pkg_install or arguments.pkg_uninstall:
             self.progress_sig.connect(self.parent.set_progressbar)
             self.disable_sig.connect(self.parent.disable_yesno_buttons)
             self.result_sig.connect(self.parent.installer_sent_message)
+            self.console_sig.connect(self.console_switch)
             self.ask_sig.connect(self.parent.installer_ask)
             self.finish_sig.connect(self.parent.installer_finished)
             self.clear_sig.connect(self.parent.clear_label)
@@ -367,10 +368,14 @@ if arguments.pkg_install or arguments.pkg_uninstall:
             self.no_sig.connect(self.no)
             self.work = False
             self.q = ""
-                    
+            self.console_visible = False
+               
+        def console_switch(self, status):
+            self.console_visible = status
+            
         def set_job(self, pkcon_args, env):
-                    self.pkg_process = ptyprocess.PtyProcessUnicode.spawn(pkcon_args, env=env)
-                    self.work = True
+            self.pkg_process = ptyprocess.PtyProcessUnicode.spawn(pkcon_args, env=env)
+            self.work = True
 
         def yes(self):
             self.disable_sig.emit()
@@ -404,11 +409,10 @@ if arguments.pkg_install or arguments.pkg_uninstall:
                                 f_line = '{}<br>'.format(translate(lastline[:-1]))
                                 if "have to be" in lastline or self.q:
                                     self.q += f_line
-                                if arguments.pkg_console:
-                                    self.result_sig.emit(f_line)
+                                self.result_sig.emit(f_line)
                                 lastline = ""
                         if '?' in lastline:
-                            if arguments.pkg_console:
+                            if self.console_visible:
                                 self.ask_sig.emit(translate(lastline))
                             else:
                                 self.ask_sig.emit(format_inst_label(self.q + translate(lastline)))                             
@@ -472,12 +476,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
 
             self.installer = InstallerThread(self)
             self.installer.start()
-            if arguments.pkg_console:
-                width = 400
-                height = 250
-                self.textbrowser = QTextBrowser()
-                self.textbrowser.setMinimumSize(width, height)
-                self.verticalLayout.insertWidget(0, self.textbrowser)
+            width = 400
+            height = 250
+            self.textbrowser = QTextBrowser()
+            self.textbrowser.setMinimumSize(width, height)
+            self.verticalLayout.insertWidget(0, self.textbrowser)
+            self.textbrowser.setHidden(True)
             env = os.environ
             env["LC_ALL"] = "C"
             pkcon_args = ['pkcon','-p']
@@ -726,7 +730,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.enable_buttons(["ok_button", "cancel_button"])
             
         elif arguments.pkg_install or arguments.pkg_uninstall:
-            self.enable_buttons(["yes_button","no_button","cancel_button"])
+            self.enable_buttons(["yes_button","no_button","cancel_button","details_button"])
             
     def create_scrollarea(self, scrollLayout):
             from PyQt5.QtWidgets import QHBoxLayout, QWidget, QScrollArea
@@ -908,10 +912,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.done(0)
 
     def installer_sent_message(self, message):
-        if arguments.pkg_console:
-            self.textbrowser.insertHtml(message)
-            sb = self.textbrowser.verticalScrollBar()
-            sb.setValue(sb.maximum())
+        self.textbrowser.insertHtml(message)
+        sb = self.textbrowser.verticalScrollBar()
+        sb.setValue(sb.maximum())
 
     def installer_ask(self, message):
         self.label.setText(message)
@@ -923,8 +926,9 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
         self.show_buttons(["cancel_button"])
         self.buttons["cancel_button"].setText(_("Exit"))
         
-    def clear_label(self):
-        self.label.setText("")        
+    def clear_label(self):        
+        self.label.setText("") 
+        self.setFixedHeight(self.layout().sizeHint().height())
 
     def disable_yesno_buttons(self):
         self.disable_buttons(["yes_button", "no_button"])
@@ -976,8 +980,12 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.active_buttons[button] = True
             
     def details_button_clicked (self):
-        self.label.setText(self.label.text() + '\n\n' + self.details)
-        self.buttons["details_button"].setDisabled(True)
+        if arguments.pkg_install or arguments.pkg_uninstall:
+            self.textbrowser.setHidden(False)
+            self.disable_buttons(["details_button"])
+        else:
+            self.label.setText(self.label.text() + '\n\n' + self.details)
+            self.buttons["details_button"].setDisabled(True)
 
     def progressbar_cancel_clicked(self):
         self.progressbar_cancelled = True
