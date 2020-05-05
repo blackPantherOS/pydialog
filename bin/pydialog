@@ -116,9 +116,6 @@ def call_parser():
         sys.exit(0)
 
     def argument_error(name="", error_type=_("Missing arguments")):
-        for argument in arguments.__dict__:
-            if argument != "antisegfault":
-                exec("arguments."+argument+"=None")
         __import__("os").system('logger -t pydialog "{} {}"'.format(error_type, name))
 
     unfinished = ["passivepopup", "geticon", "printwinid", "calendar", "attach"]
