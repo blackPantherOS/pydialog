@@ -119,14 +119,13 @@ def call_parser():
         for argument in arguments.__dict__:
             if argument != "antisegfault":
                 exec("arguments."+argument+"=None")
-        arguments.error = [("PyDialog - %s: %s") % (error_type, name)]
+        __import__("os").system('logger -t pydialog "{} {}"'.format(error_type, name))
 
     unfinished = ["passivepopup", "geticon", "printwinid", "calendar", "attach"]
     
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
             argument_error(argument, _("This option is under development"))
-            break
     return arguments
 
 
@@ -137,20 +136,21 @@ pydialog_title = _("pydialog")
 if arguments.title:
     pydialog_title = arguments.title
 
-if arguments.getopenfilename or arguments.getsavefilename or arguments.getexistingdirectory or\
-arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
+if arguments.getopenfilename != None or arguments.getsavefilename != None or arguments.getexistingdirectory != None or\
+arguments.getopenurl != None or arguments.getsaveurl != None or arguments.getcolor:
     from PyQt5.QtWidgets import QFileDialog, QApplication, QDialog
     app = QApplication(sys.argv)
     filters = _("All Files (*)")
+    directory = None
     if arguments.getopenfilename:
-        directory = arguments.getopenfilename[0]
+        directory = arguments.getopenfilename[0] 
         if len(arguments.getopenfilename) > 1:
             filters = arguments.getopenfilename[1]
     elif arguments.getsavefilename:
         directory = arguments.getsavefilename[0]
         if len(arguments.getsavefilename) > 1:
             filters = arguments.getsavefilename[1]
-    elif arguments.getexistingdirectory:
+    elif arguments.getexistingdirectory != None:
         directory = arguments.getexistingdirectory[0]
     elif arguments.getopenurl:
         directory = arguments.getopenurl[0]
@@ -160,7 +160,7 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
         directory = arguments.getsaveurl[0]
         if len(arguments.getsaveurl) > 1:
             filters = arguments.getsaveurl[1]
-    if arguments.getopenfilename:
+    if arguments.getopenfilename != None:
         if arguments.multiple:
             try:
                 files, filt = QFileDialog.getOpenFileNames(None, pydialog_title, directory, filters)
@@ -173,16 +173,16 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
             if dialog.exec_() == QDialog.Accepted:
                 print(dialog.selectedFiles()[0])
                 sys.exit(0)
-    elif arguments.getsavefilename:
+    elif arguments.getsavefilename != None:
         from os.path import relpath
         savefilename = relpath(QFileDialog.getSaveFileName(None, pydialog_title, directory, filters)[0])
         print(savefilename)
         sys.exit(0)
-    elif arguments.getexistingdirectory:
+    elif arguments.getexistingdirectory != None:
         existingdirectory = QFileDialog.getExistingDirectory(None, pydialog_title, directory)
         print(existingdirectory)
         sys.exit(0)
-    elif arguments.getopenurl:
+    elif arguments.getopenurl != None:
         if arguments.multiple:
             r = [e.toString() for e in QFileDialog.getOpenFileUrls(None, pydialog_title, directory, filters)[0]]
             urls = " ".join(r)
@@ -191,7 +191,7 @@ arguments.getopenurl or arguments.getsaveurl or arguments.getcolor:
             url = QFileDialog.getOpenFileUrl(None, pydialog_title, directory, filters)[0].toString()
             print(url)
             sys.exit(0)
-    elif arguments.getsaveurl:
+    elif arguments.getsaveurl != None:
         url = QFileDialog.getSaveFileUrl(None, pydialog_title, directory, filters)[0].toString()
         print(url)
         sys.exit(0)
@@ -593,8 +593,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             if arguments.sorry:
                 self.label.setText(arguments.sorry)
             elif arguments.error:
-                print("itt", arguments.error)
-                self.label.setText(arguments.error)
+#                print("itt", arguments.error)
+                self.label.setText(str(arguments.error))
             elif arguments.msgbox:
                 self.label.setText(arguments.msgbox)
             elif arguments.textbox:
