@@ -109,7 +109,8 @@ def call_parser():
 
     parser.add_argument("--antisegfault", action='store_true')
 
-    arguments = parser.parse_args()
+#    arguments = parser.parse_args()
+    arguments, unknown_arguments = parser.parse_known_args()
     
     if arguments.version:
         print(VERSION)
@@ -123,10 +124,10 @@ def call_parser():
     for argument in unfinished:
         if not eval("arguments."+argument) is None:
             argument_error(argument, _("This option is under development"))
-    return arguments
+    return arguments, unknown_arguments
 
 
-arguments = call_parser()
+arguments, unknown_arguments = call_parser()
 return_keyword = "<PYDIALOG-RESULT:"
 
 pydialog_title = _("pydialog")
@@ -658,7 +659,7 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             self.label_2.setText(_("Password:"))
 
         elif arguments.combobox:
-            self.comboBox.addItems(arguments.combobox[1:])
+            self.comboBox.addItems(arguments.combobox[1:]+unknown_arguments)
             if arguments.default:
                 self.comboBox.setCurrentText(arguments.default)
             self.label_2.setParent(None)
