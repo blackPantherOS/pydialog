@@ -173,7 +173,7 @@ arguments.getopenurl != None or arguments.getsaveurl != None or arguments.getcol
                 sys.exit(0)
     elif arguments.getsavefilename != None:
         from os.path import relpath
-        savefilename = relpath(QFileDialog.getSaveFileName(None, pydialog_title, directory, filters)[0])
+        savefilename = QFileDialog.getSaveFileName(None, pydialog_title, directory, filters)[0]
         print(savefilename)
         sys.exit(0)
     elif arguments.getexistingdirectory != None:
