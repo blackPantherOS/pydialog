@@ -9,7 +9,8 @@ Patches, Extensions, any ideas are welcome!
 
 Screenshot
 -----------
-![pydialog](https://raw.githubusercontent.com/blackPantherOS/playground/master/pydialog/screenshot.png)
+
+<img src="screenshot.png" alt="screenshot"> 
 
 Plans:
 ------
