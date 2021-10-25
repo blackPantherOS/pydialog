@@ -11,7 +11,7 @@
 #*          The maintainer of the Pydialog: Miklos Horvath * hmiki[]blackpantheros.eu                    *
 #*************************************************************************************(c)2002-2017********
 
-VERSION = "0.9.8"
+VERSION = "0.9.9"
 
 import sys, time
 import gettext
@@ -68,7 +68,7 @@ def call_parser():
     parser.add_argument("--getsaveurl", metavar=_("[startDir] [filter]"), help=_("File dialog to save a URL"), nargs='*') # TODO: The path is not relative!
     parser.add_argument("--getcolor", help=_("Color dialog to select a color"), action='store_true')
     parser.add_argument("--textbox", metavar=_("<file> [width] [height]"), help=_("Text Box dialog"), nargs='+')
-    parser.add_argument("--banner", metavar=_("<text>"), help=_("Banner text for textbox"))
+    #parser.add_argument("--banner", metavar=_("<text>"), help=_("Banner text for textbox"))
     parser.add_argument("--combobox", metavar=_("<text> item [item] [item] ..."), help=_("ComboBox dialog"), nargs='+')
     parser.add_argument("--textinputbox", metavar=_("<text> <init> [width] [height]"), help=_("Text Input Box dialog"), nargs='+')
     parser.add_argument("--multiple", help=_("Allows the --getopenurl and --getopenfilename options to return multiple files"), action='store_true')
@@ -596,8 +596,8 @@ class MainWindow(QDialog, window1.Ui_PyDialog):
             elif arguments.msgbox:
                 self.label.setText(arguments.msgbox)
             elif arguments.textbox:
-                if arguments.banner:
-                    self.label.setText(arguments.banner)
+                if arguments.title:
+                    self.label.setText(arguments.title)
                 from PyQt5.QtWidgets import QTextBrowser
                 width = 600
                 height = 250
