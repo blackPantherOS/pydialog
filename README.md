@@ -1,3 +1,15 @@
+# Repo of PyDialog (Destroyed)
+Because Hungarian LinuxMint and Hungarian Ubuntu users made a vile and liar humiliate content here:
+https://kikezekahulyek.fandom.com/wiki/BlackPanther_OS
+
+## We don’t want to develop and support people who don’t respect the work of others.
+## We reject any form of discrimination and liars.
+## We close this source and we will not open this code in the future,
+## Our response to each destruction is to delete one of our source codes
+
+It Was: PyDialog what a Qt5 based dialog system instead KDialog
+
+
 Description: 
 ------------
 
