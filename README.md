@@ -1,6 +1,5 @@
 # Repo of PyDialog (Destroyed)
-Because Hungarian LinuxMint and Hungarian Ubuntu users made a vile and liar humiliate content here:
-https://kikezekahulyek.fandom.com/wiki/BlackPanther_OS
+Because Hungarian LinuxMint and Hungarian Ubuntu/Debian users made many vile and liar humiliate content
 
 ## We don’t want to develop and support people who don’t respect the work of others.
 ## We reject any form of discrimination and liars.
